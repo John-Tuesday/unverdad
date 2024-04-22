@@ -1,0 +1,31 @@
+[tool.pdm]
+[[tool.pdm.source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[tool.pdm.dev-dependencies]
+dev = []
+
+[project]
+# PEP 621 project metadata
+# See https://www.python.org/dev/peps/pep-0621/
+name = "example_pkg_USERNAME"
+version = "0.0.1"
+authors = [
+    { name="John Tuesday", email="example@example.com" },
+]
+description = "Guilty Gear Mod manager"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "requests",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
