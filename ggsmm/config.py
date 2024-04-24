@@ -7,7 +7,12 @@ from ggsmm.errors import GgsmmError
 
 logger = logging.getLogger(__name__)
 
+class ConfigError(GgsmmError):
+    """Base class for all errors caused Config."""
+    pass
+
 class AppConfig:
+    """App-level config variables that will not change (by the user)."""
     APP_NAME = 'ggs-mm'
 
     DATA_HOME = pathlib.Path(os.getenv('XDG_DATA_HOME', "~/.local/share")).expanduser() / APP_NAME
@@ -17,19 +22,19 @@ class AppConfig:
     LOG_FILE = STATE_HOME / 'log'
     CONFIG_FILE = CONFIG_HOME / 'config.toml'
 
-class ConfigError(GgsmmError):
-    pass
-
 class Config:
+    """User controlled config settings."""
     DEFAULT_MODS_DIR = AppConfig.DATA_HOME / 'mods'
 
     def __init__(self):
+        """"Create with all default values."""
         self.mods_dir = self.DEFAULT_MODS_DIR
         self.install_dir = pathlib.Path('~mods')
         self.path = None
 
     @property
     def mods_dir(self):
+        """Directory which holds all mods, installed or uninstalled."""
         return self.__mods_dir
 
     @mods_dir.setter
@@ -45,6 +50,11 @@ class Config:
 
     @property
     def install_dir(self):
+        """Directory inwhich mods will be installed.
+
+        The parent directory should already be created, but the outtermost
+        directory will be created if it does not exist.
+        """
         return self.__install_dir
 
     @install_dir.setter
@@ -60,6 +70,7 @@ class Config:
 
     @property
     def file_path(self):
+        """Path to the config file which was loaded."""
         return self.__path
 
     @file_path.setter
@@ -72,6 +83,15 @@ class Config:
 
     @staticmethod
     def load(config_path=AppConfig.CONFIG_FILE, strict=False):
+        """Returns new Config as determined by the input file.
+
+        Args:
+            strict:
+                Determines if an unrecognized will raise an exception or not.
+
+        Raises:
+            ConfigError: Unrecognized key in config file.
+        """
         logger.debug(f"loading config file '{config_path}'")
         data = dict()
         with open(config_path, "rb") as f:
