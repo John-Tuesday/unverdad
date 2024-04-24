@@ -67,7 +67,7 @@ class ClearLogSubCmd(SubCommand):
     @staticmethod
     def attach(subparsers) -> argparse.ArgumentParser:
         p = subparsers.add_parser("clear-log", help="clear log and exit")
-        p.set_defaults(fm='w', hook=lambda _: logger.info('log cleared'))
+        p.set_defaults(log_mode='w', hook=lambda _: logger.info('log cleared'))
         return p
 
 class ConfigVerifySubCmd(SubCommand):
@@ -94,7 +94,7 @@ def parse_args(
     ],
 ):
     parser = argparse.ArgumentParser(description="manage mods for Guilty Gear Strive")
-    parser.set_defaults(fm='a', out_lvl=logging.INFO, load_config=True)
+    parser.set_defaults(log_mode='a', out_lvl=logging.INFO)
     verbosity_group = parser.add_mutually_exclusive_group()
     verbosity_group.add_argument("-v", "--verbose", help="detailed output", action="store_const", const=logging.DEBUG, dest='out_lvl')
     verbosity_group.add_argument("-q", "--quiet", help="silent output", action="store_const", const=logging.ERROR, dest='out_lvl')
@@ -113,11 +113,10 @@ def parse_args(
     console_h.setLevel(args.out_lvl)
     console_h.setFormatter(logging.Formatter())
     root_logger.addHandler(console_h)
-    file_h = logging.FileHandler(filename=AppConfig.LOG_FILE, mode=args.fm)
+    file_h = logging.FileHandler(filename=AppConfig.LOG_FILE, mode=args.log_mode)
     file_h.setLevel(logging.DEBUG)
     file_h.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s'))
     root_logger.addHandler(file_h)
 
     args.config = Config.load()
-
     args.hook(args.config)
