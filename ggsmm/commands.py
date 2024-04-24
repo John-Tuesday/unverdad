@@ -5,44 +5,6 @@ import subprocess
 import sys
 logger = logging.getLogger(__name__)
 
-def install_mods(config):
-    logger.info("install mods")
-    if not config.is_valid():
-        msg = "invalid config! Aborting install"
-        logger.error(msg)
-        raise Exception(msg)
-    config.install_dir.mkdir(exist_ok=True)
-    result = subprocess.run(
-            ['cp', '--verbose', '--recursive', config.mods_dir, config.install_dir], 
-            capture_output=True,
-            text=True)
-    logger.debug(result.stdout)
-    result.check_returncode()
-    logger.info("install finished")
-    return
-
-def uninstall_mods(config):
-    logger.info("uninstall mods")
-    if not config.validate_install_dir():
-        msg = "invalid install_dir! Aborting uninstall"
-        logger.error(msg)
-        raise Exception(msg)
-    result = subprocess.run(
-            ['rm', '--verbose', '--recursive', config.install_dir],
-            capture_output=True,
-            text=True)
-    logger.debug(result.stdout)
-    result.check_returncode()
-    logger.info("uninstall finished")
-    return
-
-def config_verify(config):
-    logger.info('verify config')
-    if config.is_valid():
-        logger.info('config is valid')
-    else:
-        logger.warning('config is NOT VALID')
-
 class SubCommand:
     @property
     def name(self):
@@ -63,7 +25,21 @@ class InstallSubCmd(SubCommand):
 
     @staticmethod
     def hook(args):
-        install_mods(args)
+        logger.info("install mods")
+        config = args.config
+        if not config.is_valid():
+            msg = "invalid config! Aborting install"
+            logger.error(msg)
+            raise Exception(msg)
+        config.install_dir.mkdir(exist_ok=True)
+        result = subprocess.run(
+                ['cp', '--verbose', '--recursive', config.mods_dir, config.install_dir], 
+                capture_output=True,
+                text=True)
+        logger.debug(result.stdout)
+        result.check_returncode()
+        logger.info("install finished")
+        return
 
 class UninstallSubCmd(SubCommand):
     @staticmethod
@@ -72,7 +48,20 @@ class UninstallSubCmd(SubCommand):
 
     @staticmethod
     def hook(args):
-        uninstall_mods(args)
+        logger.info("uninstall mods")
+        config = args.config
+        if not config.validate_install_dir():
+            msg = "invalid install_dir! Aborting uninstall"
+            logger.error(msg)
+            raise Exception(msg)
+        result = subprocess.run(
+                ['rm', '--verbose', '--recursive', config.install_dir],
+                capture_output=True,
+                text=True)
+        logger.debug(result.stdout)
+        result.check_returncode()
+        logger.info("uninstall finished")
+        return
 
 class ClearLogSubCmd(SubCommand):
     @staticmethod
@@ -89,7 +78,11 @@ class ConfigVerifySubCmd(SubCommand):
 
     @staticmethod
     def hook(args):
-        config_verify(args)
+        logger.info('verify config')
+        if args.config.is_valid():
+            logger.info('config is valid')
+        else:
+            logger.warning('config is NOT VALID')
 
 def parse_args(
     root_logger = logging.getLogger(),
