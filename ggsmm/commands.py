@@ -67,7 +67,7 @@ class ClearLogSubCmd(SubCommand):
     @staticmethod
     def attach(subparsers) -> argparse.ArgumentParser:
         p = subparsers.add_parser("clear-log", help="clear log and exit")
-        p.set_defaults(fm='w', hook=lambda _: None)
+        p.set_defaults(fm='w', hook=lambda _: logger.info('log cleared'))
         return p
 
 class ConfigVerifySubCmd(SubCommand):
