@@ -43,7 +43,63 @@ def config_verify(config):
     else:
         logger.warning('config is NOT VALID')
 
-def parse_args(on_install = install_mods, on_uninstall = uninstall_mods, on_clear_log = lambda _: None, on_config_verify = config_verify, root_logger = logging.getLogger()):
+class SubCommand:
+    @property
+    def name(self):
+        pass
+
+    @staticmethod
+    def attach(subparsers) -> argparse.ArgumentParser:
+        ...
+
+    @staticmethod
+    def hook(args):
+        ...
+
+class InstallSubCmd(SubCommand):
+    @staticmethod
+    def attach(subparsers) -> argparse.ArgumentParser:
+        return subparsers.add_parser("install", help="install all mods")
+
+    @staticmethod
+    def hook(args):
+        install_mods(args)
+
+class UninstallSubCmd(SubCommand):
+    @staticmethod
+    def attach(subparsers) -> argparse.ArgumentParser:
+        return subparsers.add_parser("uninstall", help="remove all mods from install location")
+
+    @staticmethod
+    def hook(args):
+        uninstall_mods(args)
+
+class ClearLogSubCmd(SubCommand):
+    @staticmethod
+    def attach(subparsers) -> argparse.ArgumentParser:
+        p = subparsers.add_parser("clear-log", help="clear log and exit")
+        p.set_defaults(fm='w', hook=lambda _: None)
+        return p
+
+class ConfigVerifySubCmd(SubCommand):
+    @staticmethod
+    def attach(subparsers) -> argparse.ArgumentParser:
+        p = subparsers.add_parser("config-verify", help="verify config")
+        return p
+
+    @staticmethod
+    def hook(args):
+        config_verify(args)
+
+def parse_args(
+    root_logger = logging.getLogger(),
+    subcommands = [
+        InstallSubCmd,
+        UninstallSubCmd,
+        ClearLogSubCmd,
+        ConfigVerifySubCmd,
+    ],
+):
     parser = argparse.ArgumentParser(description="manage mods for Guilty Gear Strive")
     parser.set_defaults(fm='a', out_lvl=logging.INFO, load_config=True)
     verbosity_group = parser.add_mutually_exclusive_group()
@@ -54,14 +110,9 @@ def parse_args(on_install = install_mods, on_uninstall = uninstall_mods, on_clea
             description="control mod installation",
             required=True,
             )
-    install_p   = subparsers.add_parser("install", help="install all mods")
-    install_p.set_defaults(hook=on_install)
-    uninstall_p = subparsers.add_parser("uninstall", help="remove all mods from install location")
-    uninstall_p.set_defaults(hook=on_uninstall)
-    clear_log_p = subparsers.add_parser("clear-log", help="clear log and exit")
-    clear_log_p.set_defaults(hook=on_clear_log, fm='w', load_config=False)
-    config_verify_p = subparsers.add_parser("config-verify", help="verify config")
-    config_verify_p.set_defaults(hook=on_config_verify)
+    for subcmd in subcommands:
+        p = subcmd.attach(subparsers)
+        p.set_defaults(hook=subcmd.hook)
     args = parser.parse_args()
 
     # init logger handles
@@ -74,7 +125,6 @@ def parse_args(on_install = install_mods, on_uninstall = uninstall_mods, on_clea
     file_h.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s'))
     root_logger.addHandler(file_h)
 
-    if args.load_config:
-        args.config = Config.load()
+    args.config = Config.load()
 
     args.hook(args.config)
