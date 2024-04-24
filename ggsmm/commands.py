@@ -144,5 +144,5 @@ def parse_args(
     root_logger.addHandler(file_h)
 
     args.config = Config.load()
-    args.hook(args.config)
+    args.hook(args)
 

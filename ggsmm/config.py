@@ -30,7 +30,7 @@ class Config:
         """"Create with all default values."""
         self.mods_dir = self.DEFAULT_MODS_DIR
         self.install_dir = pathlib.Path('~mods')
-        self.path = None
+        self.file_path = None
 
     @property
     def mods_dir(self):
@@ -71,7 +71,7 @@ class Config:
     @property
     def file_path(self):
         """Path to the config file which was loaded."""
-        return self.__path
+        return self.__file_path
 
     @file_path.setter
     def file_path(self, value):
@@ -98,13 +98,13 @@ class Config:
             data = tomllib.load(f)
 
         obj = Config()
-        obj.__path = pathlib.Path(config_path)
+        obj.file_path = pathlib.Path(config_path)
         for key, value in data.items():
             match key:
                 case 'mods_dir':
-                    obj.__mods_dir = pathlib.Path(value).expanduser()
+                    obj.mods_dir = pathlib.Path(value).expanduser()
                 case 'install_dir':
-                    obj.__install_dir = pathlib.Path(value).expanduser()
+                    obj.install_dir = pathlib.Path(value).expanduser()
                 case _:
                     msg = f"Unrecognized key in config: '{key}'"
                     logger.error(msg)
