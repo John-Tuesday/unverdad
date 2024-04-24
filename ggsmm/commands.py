@@ -3,26 +3,37 @@ from ggsmm.config import AppConfig, Config, ConfigError
 import logging
 import subprocess
 import sys
+from typing import override, Protocol
 logger = logging.getLogger(__name__)
 
-class SubCommand:
-    @property
-    def name(self):
-        pass
-
+class SubCommand(Protocol):
+    """Factory for ArgumentParsers with a hook for when it's called."""
     @staticmethod
-    def attach(subparsers) -> argparse.ArgumentParser:
+    def attach(subparsers) -> argparse.ArgumentParser: 
+        """Add parser to subparsers, configure, then return the result."""
         ...
 
     @staticmethod
-    def hook(args):
+    def hook(args) -> None: 
+        """Perform action.
+
+        Called immediately after loading config.
+
+        Args:
+            args:
+                Namespace object resulting from the parsed args; plus,
+                args.config holds the resulting config.Config object.
+        """
         ...
 
 class InstallSubCmd(SubCommand):
+    """"Install mods."""
+    @override
     @staticmethod
     def attach(subparsers) -> argparse.ArgumentParser:
         return subparsers.add_parser("install", help="install all mods")
 
+    @override
     @staticmethod
     def hook(args):
         logger.info("install mods")
@@ -42,10 +53,13 @@ class InstallSubCmd(SubCommand):
         return
 
 class UninstallSubCmd(SubCommand):
+    """Uninstall mods."""
+    @override
     @staticmethod
     def attach(subparsers) -> argparse.ArgumentParser:
         return subparsers.add_parser("uninstall", help="remove all mods from install location")
 
+    @override
     @staticmethod
     def hook(args):
         logger.info("uninstall mods")
@@ -64,6 +78,8 @@ class UninstallSubCmd(SubCommand):
         return
 
 class ClearLogSubCmd(SubCommand):
+    """Clear log file."""
+    @override
     @staticmethod
     def attach(subparsers) -> argparse.ArgumentParser:
         p = subparsers.add_parser("clear-log", help="clear log and exit")
@@ -71,11 +87,14 @@ class ClearLogSubCmd(SubCommand):
         return p
 
 class ConfigVerifySubCmd(SubCommand):
+    """Verify config file."""
+    @override
     @staticmethod
     def attach(subparsers) -> argparse.ArgumentParser:
         p = subparsers.add_parser("config-verify", help="verify config")
         return p
 
+    @override
     @staticmethod
     def hook(args):
         logger.info('verify config')
@@ -85,14 +104,20 @@ class ConfigVerifySubCmd(SubCommand):
             logger.warning('config is NOT VALID')
 
 def parse_args(
-    root_logger = logging.getLogger(),
-    subcommands = [
+    root_logger: logging.Logger = logging.getLogger(),
+    subcommands: list[type[SubCommand]] = [
         InstallSubCmd,
         UninstallSubCmd,
         ClearLogSubCmd,
         ConfigVerifySubCmd,
     ],
 ):
+    """Parse args to configure and perform user chosen actions.
+
+    Creates, configures, and runs an argparse.ArgumentParser.
+    According to the parsed arguments, configure logging and run associated
+    hook functions.
+    """
     parser = argparse.ArgumentParser(description="manage mods for Guilty Gear Strive")
     parser.set_defaults(log_mode='a', out_lvl=logging.INFO)
     verbosity_group = parser.add_mutually_exclusive_group()
