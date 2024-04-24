@@ -77,6 +77,20 @@ class UninstallSubCmd(SubCommand):
         logger.info("uninstall finished")
         return
 
+class ReinstallSubCmd(SubCommand):
+    """Uninstall mods, then install mods."""
+    @override
+    @staticmethod
+    def attach(subparsers) -> argparse.ArgumentParser:
+        return subparsers.add_parser("reinstall", help="equivalent to uninstall then install")
+
+    @override
+    @staticmethod
+    def hook(args):
+        logger.info("reinstall")
+        UninstallSubCmd.hook(args)
+        InstallSubCmd.hook(args)
+
 class ClearLogSubCmd(SubCommand):
     """Clear log file."""
     @override
@@ -108,6 +122,7 @@ def parse_args(
     subcommands: list[type[SubCommand]] = [
         InstallSubCmd,
         UninstallSubCmd,
+        ReinstallSubCmd,
         ClearLogSubCmd,
         ConfigVerifySubCmd,
     ],
