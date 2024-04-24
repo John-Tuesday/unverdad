@@ -1,0 +1,3 @@
+class GgsmmError(Exception):
+    pass
+

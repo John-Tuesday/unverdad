@@ -36,7 +36,14 @@ def uninstall_mods(config):
     logger.info("uninstall finished")
     return
 
-def parse_args(on_install = install_mods, on_uninstall = uninstall_mods, on_clear_log = lambda _: None, root_logger = logging.getLogger()):
+def config_verify(config):
+    logger.info('verify config')
+    if config.is_valid():
+        logger.info('config is valid')
+    else:
+        logger.warning('config is NOT VALID')
+
+def parse_args(on_install = install_mods, on_uninstall = uninstall_mods, on_clear_log = lambda _: None, on_config_verify = config_verify, root_logger = logging.getLogger()):
     parser = argparse.ArgumentParser(description="manage mods for Guilty Gear Strive")
     parser.set_defaults(fm='a', out_lvl=logging.INFO, load_config=True)
     verbosity_group = parser.add_mutually_exclusive_group()
@@ -53,6 +60,8 @@ def parse_args(on_install = install_mods, on_uninstall = uninstall_mods, on_clea
     uninstall_p.set_defaults(hook=on_uninstall)
     clear_log_p = subparsers.add_parser("clear-log", help="clear log and exit")
     clear_log_p.set_defaults(hook=on_clear_log, fm='w', load_config=False)
+    config_verify_p = subparsers.add_parser("config-verify", help="verify config")
+    config_verify_p.set_defaults(hook=on_config_verify)
     args = parser.parse_args()
 
     # init logger handles

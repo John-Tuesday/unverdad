@@ -3,6 +3,8 @@ import os
 import pathlib
 import tomllib
 
+from ggsmm.errors import GgsmmError
+
 logger = logging.getLogger(__name__)
 
 class AppConfig:
@@ -15,21 +17,29 @@ class AppConfig:
     LOG_FILE = STATE_HOME / 'log'
     CONFIG_FILE = CONFIG_HOME / 'config.toml'
 
+class ConfigError(GgsmmError):
+    pass
+
 class Config:
     DEFAULT_MODS_DIR = AppConfig.DATA_HOME / 'mods'
 
     def __init__(self):
-        self.__mods_dir = self.DEFAULT_MODS_DIR
-        self.__install_dir = pathlib.Path('~mods')
-        self.__path = None
+        self.mods_dir = self.DEFAULT_MODS_DIR
+        self.install_dir = pathlib.Path('~mods')
+        self.path = None
 
     @property
     def mods_dir(self):
         return self.__mods_dir
 
+    @mods_dir.setter
+    def mods_dir(self, value):
+        self.__mods_dir = value
+        logger.debug(f"config.mods_dir is set to '{self.mods_dir}'")
+
     def validate_mods_dir(self):
         if not self.mods_dir.is_dir():
-            logger.error(f"mods_dir is not a directory '{self.mods_dir}'")
+            logger.error(f"config.mods_dir is not a directory '{self.mods_dir}'")
             return False
         return True
 
@@ -37,15 +47,25 @@ class Config:
     def install_dir(self):
         return self.__install_dir
 
+    @install_dir.setter
+    def install_dir(self, value):
+        logger.debug(f"config.install_dir is set to '{value}'")
+        self.__install_dir = value
+
     def validate_install_dir(self):
         if not self.install_dir.parent.is_dir():
-            logger.error(f"install_dir parent is not a directory '{self.install_dir.parent}'")
+            logger.error(f"config.install_dir parent is not a directory '{self.install_dir.parent}'")
             return False
         return True
 
     @property
     def file_path(self):
         return self.__path
+
+    @file_path.setter
+    def file_path(self, value):
+        logger.debug(f"config.file_path is set to '{value}'")
+        self.__file_path = value
 
     def is_valid(self):
         return self.validate_mods_dir() and self.validate_install_dir()
@@ -69,6 +89,6 @@ class Config:
                     msg = f"Unrecognized key in config: '{key}'"
                     logger.error(msg)
                     if strict:
-                        raise Exception(msg)
+                        raise ConfigError(msg)
         return obj
 
