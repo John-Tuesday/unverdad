@@ -1,5 +1,5 @@
 import argparse
-from ggsmm.config import AppConfig, Config
+from ggsmm.config import AppConfig, Config, ConfigError
 import logging
 import subprocess
 import sys
@@ -30,7 +30,7 @@ class InstallSubCmd(SubCommand):
         if not config.is_valid():
             msg = "invalid config! Aborting install"
             logger.error(msg)
-            raise Exception(msg)
+            raise ConfigError(msg)
         config.install_dir.mkdir(exist_ok=True)
         result = subprocess.run(
                 ['cp', '--verbose', '--recursive', config.mods_dir, config.install_dir], 
@@ -53,7 +53,7 @@ class UninstallSubCmd(SubCommand):
         if not config.validate_install_dir():
             msg = "invalid install_dir! Aborting uninstall"
             logger.error(msg)
-            raise Exception(msg)
+            raise ConfigError(msg)
         result = subprocess.run(
                 ['rm', '--verbose', '--recursive', config.install_dir],
                 capture_output=True,
@@ -120,3 +120,4 @@ def parse_args(
 
     args.config = Config.load()
     args.hook(args.config)
+
