@@ -36,7 +36,7 @@ def uninstall_mods(config):
     logger.info("uninstall finished")
     return
 
-def parse_args(on_install = install_mods, on_uninstall = uninstall_mods, on_clear_log = lambda _: None):
+def parse_args(on_install = install_mods, on_uninstall = uninstall_mods, on_clear_log = lambda _: None, root_logger = logging.getLogger()):
     parser = argparse.ArgumentParser(description="manage mods for Guilty Gear Strive")
     parser.set_defaults(fm='a', out_lvl=logging.INFO, load_config=True)
     verbosity_group = parser.add_mutually_exclusive_group()
@@ -59,11 +59,11 @@ def parse_args(on_install = install_mods, on_uninstall = uninstall_mods, on_clea
     console_h = logging.StreamHandler(sys.stdout)
     console_h.setLevel(args.out_lvl)
     console_h.setFormatter(logging.Formatter())
-    logger.addHandler(console_h)
+    root_logger.addHandler(console_h)
     file_h = logging.FileHandler(filename=AppConfig.LOG_FILE, mode=args.fm)
     file_h.setLevel(logging.DEBUG)
     file_h.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s'))
-    logger.addHandler(file_h)
+    root_logger.addHandler(file_h)
 
     if args.load_config:
         args.config = Config.load()
