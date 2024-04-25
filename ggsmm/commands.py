@@ -1,5 +1,5 @@
 import argparse
-from ggsmm.config import AppConfig, Config, Config0, ConfigError, ConfigKeyNotInSchema
+from ggsmm.config import AppConfig, Config, ConfigError, ConfigKeyNotInSchema
 import logging
 import subprocess
 import sys
@@ -197,7 +197,6 @@ def parse_args(
     file_h.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s'))
     root_logger.addHandler(file_h)
 
-    args.config = Config0() # Config0.load_toml()
-    # args.config = Config.load()
+    args.config = Config.load_toml()
     args.hook(args)
 
