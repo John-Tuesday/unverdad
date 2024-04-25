@@ -38,10 +38,6 @@ class InstallSubCmd(SubCommand):
     def hook(args):
         logger.info("install mods")
         config = args.config
-        # if not config.is_valid():
-        #     msg = "invalid config! Aborting install"
-        #     logger.error(msg)
-        #     raise ConfigError(msg)
         config.install_dir.mkdir(exist_ok=True)
         result = subprocess.run(
                 ['cp', '--verbose', '--recursive', config.mods_dir, config.install_dir], 
@@ -64,10 +60,6 @@ class UninstallSubCmd(SubCommand):
     def hook(args):
         logger.info("uninstall mods")
         config = args.config
-        # if not config.validate_install_dir():
-        #     msg = "invalid install_dir! Aborting uninstall"
-        #     logger.error(msg)
-        #     raise ConfigError(msg)
         result = subprocess.run(
                 ['rm', '--verbose', '--recursive', config.install_dir],
                 capture_output=True,
@@ -127,7 +119,6 @@ class ConfigSubCmd(SubCommand):
     def hook(args):
         logger.info('config')
         if args.keys:
-            # ConfigSubCmd.get_values(args.config, args.keys)
             logger.info('get config value by one or more keys')
             try:
                 lines = '\n'.join([f'    {args.config.toml_str_at(key)}' for key in args.keys])
