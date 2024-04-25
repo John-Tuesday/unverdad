@@ -100,23 +100,6 @@ class ClearLogSubCmd(SubCommand):
         p.set_defaults(log_mode='w', hook=lambda _: logger.info('log cleared'))
         return p
 
-class ConfigVerifySubCmd(SubCommand):
-    """Verify config file."""
-    @override
-    @staticmethod
-    def attach(subparsers) -> argparse.ArgumentParser:
-        p = subparsers.add_parser("config-verify", help="verify config")
-        return p
-
-    @override
-    @staticmethod
-    def hook(args):
-        logger.info('verify config')
-        # if args.config.is_valid():
-        #     logger.info('config is valid')
-        # else:
-        #     logger.warning('config is NOT VALID')
-
 class ConfigSubCmd(SubCommand):
     """Config related sub commands."""
     LIST_OPT = 1
@@ -136,6 +119,10 @@ class ConfigSubCmd(SubCommand):
             help='get config value from key',
             action="extend", nargs='+',
             dest='keys', metavar='KEY')
+        g.add_argument(
+            '--verify',
+            help='verify config file is valid',
+            action='store_true', default=False)
         return parser
 
     @override
@@ -154,6 +141,9 @@ class ConfigSubCmd(SubCommand):
         elif args.opt == ConfigSubCmd.LIST_OPT:
             logger.info('list all config options')
             logger.info(f'{args.config}')
+        elif args.verify:
+            logger.info('verify config')
+            logger.info('verified ...')
 
 def parse_args(
     root_logger: logging.Logger = logging.getLogger(),
@@ -163,7 +153,6 @@ def parse_args(
         ReinstallSubCmd,
         ConfigSubCmd,
         ClearLogSubCmd,
-        ConfigVerifySubCmd,
     ],
 ):
     """Parse args to configure and perform user chosen actions.
