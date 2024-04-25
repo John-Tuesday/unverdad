@@ -60,7 +60,7 @@ class Schema[T]:
         return '\n'.join(s)
 
     def toml_str(self, value) -> str:
-        return f'{self.name} = {value}'
+        return f'{self.name} = "{value}"'
 
     @staticmethod
     def parse_path(input: str):
@@ -119,9 +119,12 @@ class Config:
     #     items = {key: self.__data.get(key, (f'DEFAULT', self.Schemas[key].default())) for key in self.keys()}
     #     return f'{items}'
 
+    def toml_str_at(self, key: str) -> str:
+        return self.Schemas[key].toml_str(self[key])
+
     def __str__(self):
         tab = '    '
-        items = '\n'.join([f'{tab}{key} = "{self.get(key)}"' for key in self.keys()])
+        items = '\n'.join([f'{tab}{self.toml_str_at(key)}' for key in self.keys()])
         return f'{{\n{items}\n}}'
 
     def __contains__(self, key):

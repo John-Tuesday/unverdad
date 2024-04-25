@@ -130,7 +130,7 @@ class ConfigSubCmd(SubCommand):
             # ConfigSubCmd.get_values(args.config, args.keys)
             logger.info('get config value by one or more keys')
             try:
-                lines = '\n'.join([f'    {key} = {args.config[key]}' for key in args.keys])
+                lines = '\n'.join([f'    {args.config.toml_str_at(key)}' for key in args.keys])
                 logger.info(f'{{\n{lines}\n}}')
             except ConfigKeyNotInSchema:
                 pass
