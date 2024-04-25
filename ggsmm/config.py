@@ -59,6 +59,9 @@ class Schema[T]:
         s = [f'{self.name} = {choices_str}', f'{tab}{self.description}', f'{tab}Default: {self.default_value}']
         return '\n'.join(s)
 
+    def toml_str(self, value) -> str:
+        return f'{self.name} = {value}'
+
     @staticmethod
     def parse_path(input: str):
         return pathlib.Path(input)
@@ -152,7 +155,7 @@ class Config:
 
     def __getattr__(self, name):
         """Return the same result as self[name]."""
-        return self.__get_item__(name)
+        return self.__getitem__(name)
 
     @classmethod
     def keys(cls) -> Iterable[str]:
