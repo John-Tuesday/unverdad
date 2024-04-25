@@ -33,21 +33,31 @@ class AppConfig:
     LOG_FILE = STATE_HOME / 'log'
     CONFIG_FILE = CONFIG_HOME / 'config.toml'
 
+class SchemaValueType:
+    String = '"<string>"'
+    Path = '"<path>"'
+    Integer = '<integer>'
+    Float = '<float>'
+
+    @classmethod
+    def strings(cls, *values):
+        return ' | '.join([f'"{s}"' for s in values])
+
 @dataclass
 class Schema[T]:
     name: str
     description: str
     value_type: T
+    choices: list[str]
     parser: Callable[[str], T]
     validator: Callable[[T], bool]
-    default_value: InitVar[Optional[T]] = None
-    default_factory: InitVar[Optional[Callable[[],T]]] = None
+    default_value: T
 
-    def __post_init__(self, default_value, default_factory):
-        if default_value:
-            self.default = lambda: default_value
-        elif default_factory:
-            self.default = default_factory
+    def usage_str(self) -> str:
+        tab = '    '
+        choices_str = ' | '.join(self.choices)
+        s = [f'{self.name} = {choices_str}', f'{tab}{self.description}', f'{tab}Default: {self.default_value}']
+        return '\n'.join(s)
 
     @staticmethod
     def parse_path(input: str):
@@ -65,16 +75,18 @@ class Config:
             name='mods_dir',
             description='mods resting place',
             value_type=pathlib.Path,
+            choices=[SchemaValueType.Path],
             parser=Schema.parse_path,
             validator=Schema.validate_dir,
-            default_factory=lambda: AppConfig.DATA_HOME / 'mods'),
+            default_value=AppConfig.DATA_HOME / 'mods'),
         'install_dir': Schema(
             name='install_dir',
             description='mods installation destination',
             value_type=pathlib.Path,
+            choices=[SchemaValueType.Path],
             parser=Schema.parse_path,
             validator=Schema.validate_dir,
-            default_factory=lambda: pathlib.Path('~mods')),
+            default_value=pathlib.Path('~/.steam/root/steamapps/common/GUILTY GEAR STRIVE/RED/Content/Paks/~mods')),
     }
 
     def __init__(self):
@@ -89,7 +101,7 @@ class Config:
             raise ConfigKeyNotInSchema(msg)
         if ignore_default:
             return self.__data[key]
-        return self.__data.get(key, self.Schemas[key].default())
+        return self.__data.get(key, self.Schemas[key].default_value)
 
     def parse_set(self, key, input):
         """Use Schemas to parse string input, then set the corresponding value."""
