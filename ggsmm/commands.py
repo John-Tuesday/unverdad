@@ -102,18 +102,15 @@ class ClearLogSubCmd(SubCommand):
 
 class ConfigSubCmd(SubCommand):
     """Config related sub commands."""
-    LIST_OPT = 1
-
     @override
     @staticmethod
     def attach(subparsers) -> argparse.ArgumentParser:
         parser = subparsers.add_parser('config', help='interact with current config')
         g = parser.add_mutually_exclusive_group()
         g.add_argument(
-            '-l', '--list', 
+            '-l', '--list-all', 
             help='list all config key-value pairs',
-            action="store_const", const=ConfigSubCmd.LIST_OPT,
-            dest='opt')
+            action="store_true")
         g.add_argument(
             '-g', '--get', 
             help='get config value from key',
@@ -122,7 +119,7 @@ class ConfigSubCmd(SubCommand):
         g.add_argument(
             '--verify',
             help='verify config file is valid',
-            action='store_true', default=False)
+            action='store_true')
         return parser
 
     @override
@@ -138,7 +135,7 @@ class ConfigSubCmd(SubCommand):
             except ConfigKeyNotInSchema:
                 pass
 
-        elif args.opt == ConfigSubCmd.LIST_OPT:
+        elif args.list_all:
             logger.info('list all config options')
             logger.info(f'{args.config}')
         elif args.verify:
