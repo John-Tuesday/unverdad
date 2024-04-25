@@ -1,5 +1,5 @@
 import argparse
-from ggsmm.config import AppConfig, Config, ConfigError
+from ggsmm.config import AppConfig, Config, Config0, ConfigError, ConfigKeyNotInSchema
 import logging
 import subprocess
 import sys
@@ -38,10 +38,10 @@ class InstallSubCmd(SubCommand):
     def hook(args):
         logger.info("install mods")
         config = args.config
-        if not config.is_valid():
-            msg = "invalid config! Aborting install"
-            logger.error(msg)
-            raise ConfigError(msg)
+        # if not config.is_valid():
+        #     msg = "invalid config! Aborting install"
+        #     logger.error(msg)
+        #     raise ConfigError(msg)
         config.install_dir.mkdir(exist_ok=True)
         result = subprocess.run(
                 ['cp', '--verbose', '--recursive', config.mods_dir, config.install_dir], 
@@ -64,10 +64,10 @@ class UninstallSubCmd(SubCommand):
     def hook(args):
         logger.info("uninstall mods")
         config = args.config
-        if not config.validate_install_dir():
-            msg = "invalid install_dir! Aborting uninstall"
-            logger.error(msg)
-            raise ConfigError(msg)
+        # if not config.validate_install_dir():
+        #     msg = "invalid install_dir! Aborting uninstall"
+        #     logger.error(msg)
+        #     raise ConfigError(msg)
         result = subprocess.run(
                 ['rm', '--verbose', '--recursive', config.install_dir],
                 capture_output=True,
@@ -112,10 +112,48 @@ class ConfigVerifySubCmd(SubCommand):
     @staticmethod
     def hook(args):
         logger.info('verify config')
-        if args.config.is_valid():
-            logger.info('config is valid')
-        else:
-            logger.warning('config is NOT VALID')
+        # if args.config.is_valid():
+        #     logger.info('config is valid')
+        # else:
+        #     logger.warning('config is NOT VALID')
+
+class ConfigSubCmd(SubCommand):
+    """Config related sub commands."""
+    LIST_OPT = 1
+
+    @override
+    @staticmethod
+    def attach(subparsers) -> argparse.ArgumentParser:
+        parser = subparsers.add_parser('config', help='interact with current config')
+        g = parser.add_mutually_exclusive_group()
+        g.add_argument(
+            '-l', '--list', 
+            help='list all config key-value pairs',
+            action="store_const", const=ConfigSubCmd.LIST_OPT,
+            dest='opt')
+        g.add_argument(
+            '-g', '--get', 
+            help='get config value from key',
+            action="extend", nargs='+',
+            dest='keys', metavar='KEY')
+        return parser
+
+    @override
+    @staticmethod
+    def hook(args):
+        logger.info('config')
+        if args.keys:
+            # ConfigSubCmd.get_values(args.config, args.keys)
+            logger.info('get config value by one or more keys')
+            try:
+                lines = '\n'.join([f'    {key} = {args.config[key]}' for key in args.keys])
+                logger.info(f'{{\n{lines}\n}}')
+            except ConfigKeyNotInSchema:
+                pass
+
+        elif args.opt == ConfigSubCmd.LIST_OPT:
+            logger.info('list all config options')
+            logger.info(f'{args.config}')
 
 def parse_args(
     root_logger: logging.Logger = logging.getLogger(),
@@ -123,6 +161,7 @@ def parse_args(
         InstallSubCmd,
         UninstallSubCmd,
         ReinstallSubCmd,
+        ConfigSubCmd,
         ClearLogSubCmd,
         ConfigVerifySubCmd,
     ],
@@ -158,6 +197,7 @@ def parse_args(
     file_h.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s'))
     root_logger.addHandler(file_h)
 
-    args.config = Config.load()
+    args.config = Config0() # Config0.load_toml()
+    # args.config = Config.load()
     args.hook(args)
 
