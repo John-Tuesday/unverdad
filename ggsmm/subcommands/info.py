@@ -3,17 +3,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 def attach(subparsers):
-    p = subparsers.add_parser('info', help='detect and how actively installed mods')
-    g = p.add_mutually_exclusive_group()
-    g.add_argument(
+    parser = subparsers.add_parser('info', help='detect and how actively installed mods')
+    verify_sigs_g = parser.add_mutually_exclusive_group()
+    verify_sigs_g.add_argument(
         '--verify-sigs',
         help='explicitly check for corresponding .sig files to each .pak',
         action='store_true', default=True)
-    g.add_argument(
+    verify_sigs_g.add_argument(
         '--no-verify-sigs',
         help='explicitly skip the check for corresponding .sig files to each .pak',
         action='store_false', dest='verify_sigs')
-    return p
+    return parser
 
 def hook(args):
     logger.info('detecting installed mods')
