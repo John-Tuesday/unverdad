@@ -6,36 +6,16 @@ import sys
 from typing import override, Protocol
 logger = logging.getLogger(__name__)
 
-class SubCommand(Protocol):
-    """Factory for ArgumentParsers with a hook for when it's called."""
-    @staticmethod
-    def attach(subparsers) -> argparse.ArgumentParser: 
-        """Add parser to subparsers, configure, then return the result."""
-        ...
+from ggsmm.subcommands import config, subcommand
 
-    @staticmethod
-    def hook(args) -> None: 
-        """Perform action.
-
-        Called immediately after loading config.
-
-        Args:
-            args:
-                Namespace object resulting from the parsed args; plus,
-                args.config holds the resulting config.Config object.
-        """
-        ...
-
-class InstallSubCmd(SubCommand):
+class InstallSubCmd(subcommand.SubCommand):
     """"Install mods."""
     @override
-    @staticmethod
-    def attach(subparsers) -> argparse.ArgumentParser:
+    def attach(self, subparsers) -> argparse.ArgumentParser:
         return subparsers.add_parser("install", help="install all mods")
 
     @override
-    @staticmethod
-    def hook(args):
+    def hook(self, args):
         logger.info("install mods")
         config = args.config
         config.install_dir.mkdir(exist_ok=True)
@@ -48,16 +28,14 @@ class InstallSubCmd(SubCommand):
         logger.info("install finished")
         return
 
-class UninstallSubCmd(SubCommand):
+class UninstallSubCmd(subcommand.SubCommand):
     """Uninstall mods."""
     @override
-    @staticmethod
-    def attach(subparsers) -> argparse.ArgumentParser:
+    def attach(self, subparsers) -> argparse.ArgumentParser:
         return subparsers.add_parser("uninstall", help="remove all mods from install location")
 
     @override
-    @staticmethod
-    def hook(args):
+    def hook(self, args):
         logger.info("uninstall mods")
         config = args.config
         result = subprocess.run(
@@ -69,75 +47,30 @@ class UninstallSubCmd(SubCommand):
         logger.info("uninstall finished")
         return
 
-class ReinstallSubCmd(SubCommand):
+class ReinstallSubCmd(subcommand.SubCommand):
     """Uninstall mods, then install mods."""
     @override
-    @staticmethod
-    def attach(subparsers) -> argparse.ArgumentParser:
+    def attach(self, subparsers) -> argparse.ArgumentParser:
         return subparsers.add_parser("reinstall", help="equivalent to uninstall then install")
 
     @override
-    @staticmethod
-    def hook(args):
+    def hook(self, args):
         logger.info("reinstall")
         UninstallSubCmd.hook(args)
         InstallSubCmd.hook(args)
 
-class ClearLogSubCmd(SubCommand):
+class ClearLogSubCmd(subcommand.SubCommand):
     """Clear log file."""
     @override
-    @staticmethod
-    def attach(subparsers) -> argparse.ArgumentParser:
+    def attach(self, subparsers) -> argparse.ArgumentParser:
         p = subparsers.add_parser("clear-log", help="clear log and exit")
         p.set_defaults(log_mode='w', hook=lambda _: logger.info('log cleared'))
         return p
 
-class ConfigSubCmd(SubCommand):
-    """Config related sub commands."""
-    @override
-    @staticmethod
-    def attach(subparsers) -> argparse.ArgumentParser:
-        parser = subparsers.add_parser('config', help='interact with current config')
-        g = parser.add_mutually_exclusive_group()
-        g.add_argument(
-            '-l', '--list-all', 
-            help='list all config key-value pairs',
-            action="store_true")
-        g.add_argument(
-            '-g', '--get', 
-            help='get config value from key',
-            action="extend", nargs='+',
-            dest='keys', metavar='KEY')
-        g.add_argument(
-            '--verify',
-            help='verify config file is valid',
-            action='store_true')
-        return parser
-
-    @override
-    @staticmethod
-    def hook(args):
-        logger.info('config')
-        if args.keys:
-            logger.info('get config value by one or more keys')
-            try:
-                lines = '\n'.join([f'    {args.config.toml_str_at(key)}' for key in args.keys])
-                logger.info(f'{{\n{lines}\n}}')
-            except ConfigKeyNotInSchema:
-                pass
-
-        elif args.list_all:
-            logger.info('list all config options')
-            logger.info(f'{args.config}')
-        elif args.verify:
-            logger.info('verify config')
-            logger.info('verified ...')
-
-class DetectInstalledSubCmd(SubCommand):
+class DetectInstalledSubCmd(subcommand.SubCommand):
     """Detect and show which mods are currently installed."""
     @override
-    @staticmethod
-    def attach(subparsers):
+    def attach(self, subparsers):
         p = subparsers.add_parser('detect', help='detect and how actively installed mods')
         g = p.add_mutually_exclusive_group()
         g.add_argument(
@@ -151,8 +84,7 @@ class DetectInstalledSubCmd(SubCommand):
         return p
 
     @override
-    @staticmethod
-    def hook(args):
+    def hook(self, args):
         logger.info('detecting installed mods')
         logger.debug(f'verify_sigs: {args.verify_sigs}')
         config = args.config
@@ -175,14 +107,14 @@ class DetectInstalledSubCmd(SubCommand):
 
 def parse_args(
     root_logger: logging.Logger = logging.getLogger(),
-    subcommands: list[type[SubCommand]] = [
-        InstallSubCmd,
-        UninstallSubCmd,
-        ReinstallSubCmd,
-        DetectInstalledSubCmd,
-        ConfigSubCmd,
-        ClearLogSubCmd,
-    ],
+    subcommands: list[subcommand.SubCommand] = [
+        config, 
+        InstallSubCmd(),
+        UninstallSubCmd(),
+        ReinstallSubCmd(),
+        DetectInstalledSubCmd(),
+        ClearLogSubCmd(),
+    ]
 ):
     """Parse args to configure and perform user chosen actions.
 
