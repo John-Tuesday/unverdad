@@ -64,7 +64,7 @@ class Schema[T]:
 
     @staticmethod
     def parse_path(input: str):
-        return pathlib.Path(input)
+        return pathlib.Path(input).expanduser()
 
     @staticmethod
     def validate_dir(value):
