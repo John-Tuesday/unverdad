@@ -32,6 +32,7 @@ class AppConfig:
 
     LOG_FILE = STATE_HOME / 'log'
     CONFIG_FILE = CONFIG_HOME / 'config.toml'
+    DB_FILE = DATA_HOME / 'db'
 
 class SchemaValueType:
     String = '"<string>"'
