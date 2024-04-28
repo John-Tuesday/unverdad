@@ -3,7 +3,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 from ggsmm import config
-from ggsmm import mod_metadata as meta
+from ggsmm.data import database
+from ggsmm.data import mod_table
 
 def attach(subparsers):
     parser = subparsers.add_parser(
@@ -21,11 +22,11 @@ def hook(args):
     conf = args.config
     if args.refresh:
         logger.info(f'refresh metadata')
-        con = meta.get_db(config.AppConfig.DB_FILE)
+        con = database.get_db(config.AppConfig.DB_FILE)
         with con:
-            meta._create_mod_table(con)
-            meta._delete_all_from_mod_table(con)
-            meta.generate_metadata(conf.mods_dir, con)
+            mod_table._create_mod_table(con)
+            mod_table._delete_all_from_mod_table(con)
+            mod_table.generate_metadata(conf.mods_dir, con)
         for row in con.execute('SELECT * FROM mod'):
             print(row)
         
