@@ -1,10 +1,16 @@
 import dataclasses
+from ggsmm import errors
 import logging
 import pathlib
 import sqlite3
 from typing import Optional
 import uuid
 logger = logging.getLogger(__name__)
+
+__dbs = {}
+
+def get_db(db, **kwargs):
+    return __dbs.setdefault(db, sqlite3.connect(db, autocommit=False, detect_types=sqlite3.PARSE_DECLTYPES, **kwargs))
 
 sqlite3.register_converter('bool', lambda b: False if int(b) == 0 else True)
 sqlite3.register_adapter(bool, lambda b: 1 if b else 0)
@@ -52,6 +58,13 @@ CREATE TABLE IF NOT EXISTS mod (
 )
         """)
 
+def _drop_mod_table(con):
+    logger.debug('drop mod table')
+    with con:
+        con.execute("""
+DROP TABLE IF EXISTS mod
+        """)
+
 def _insert_many_into_mod_table(con, data):
     logger.debug(f'insert into mod table: {data}')
     with con:
@@ -67,6 +80,13 @@ def _delete_many_from_mod_table(con, data):
 DELETE FROM mod
 WHERE mod_id = :mod_id
         """, data)
+
+def _delete_all_from_mod_table(con):
+    logger.debug(f'deleting all entries in mod table')
+    with con:
+        con.execute("""
+DELETE FROM mod
+        """)
 
 def generate_metadata(dir:pathlib.Path, con):
     paks = dir.glob('**/*.pak')
