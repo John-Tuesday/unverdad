@@ -1,8 +1,7 @@
 import argparse
 import logging
+from unverdad.config import user_config
 logger = logging.getLogger(__name__)
-
-from unverdad import config
 
 def attach(subparsers) -> argparse.ArgumentParser:
     parser = subparsers.add_parser(
@@ -29,12 +28,8 @@ def hook(args):
     logger.info('config')
     if args.keys:
         logger.info('get config value by one or more keys')
-        try:
-            lines = '\n'.join([f'    {args.config.toml_str_at(key)}' for key in args.keys])
-            logger.info(f'{{\n{lines}\n}}')
-        except config.ConfigKeyNotInSchema:
-            pass
-
+        value = user_config.SCHEMA.format_export_keys(args.config, *args.keys)
+        logger.info(value)
     elif args.list_all:
         logger.info('list all config options')
         logger.info(f'{args.config}')

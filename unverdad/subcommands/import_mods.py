@@ -22,7 +22,7 @@ def hook(args):
     conf = args.config
     if args.refresh:
         logger.info(f'refresh metadata')
-        con = database.get_db(config.AppConfig.DB_FILE)
+        con = database.get_db(config.DB_FILE)
         with con:
             mod_table._create_mod_table(con)
             mod_table._delete_all_from_mod_table(con)

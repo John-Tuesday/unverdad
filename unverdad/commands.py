@@ -1,5 +1,6 @@
 import argparse
-from unverdad.config import AppConfig, Config
+from unverdad import config
+from unverdad.config import user_config
 import logging
 import subprocess
 import sys
@@ -105,11 +106,11 @@ def parse_args(
     console_h.setLevel(args.out_lvl)
     console_h.setFormatter(logging.Formatter())
     root_logger.addHandler(console_h)
-    file_h = logging.FileHandler(filename=AppConfig.LOG_FILE, mode=args.log_mode)
+    file_h = logging.FileHandler(filename=config.LOG_FILE, mode=args.log_mode)
     file_h.setLevel(logging.DEBUG)
     file_h.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s'))
     root_logger.addHandler(file_h)
 
-    args.config = Config.load_toml()
+    args.config = user_config.load_config()
     args.hook(args)
 
