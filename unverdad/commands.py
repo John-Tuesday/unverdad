@@ -57,8 +57,8 @@ class ReinstallSubCmd(subcommand.SubCommand):
     @override
     def hook(self, args):
         logger.info("reinstall")
-        UninstallSubCmd.hook(args)
-        InstallSubCmd.hook(args)
+        UninstallSubCmd().hook(args)
+        InstallSubCmd().hook(args)
 
 class ClearLogSubCmd(subcommand.SubCommand):
     """Clear log file."""

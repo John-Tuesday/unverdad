@@ -19,7 +19,7 @@ class SubCommand(Protocol):
                 Namespace object resulting from the parsed args; plus,
                 args.config holds the resulting config.Config object.
         """
-        ...
+        return
 
 def add_subcommand(subparsers, subcmd: SubCommand) -> argparse.ArgumentParser:
     parser = subcmd.attach(subparsers)
