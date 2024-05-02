@@ -1,5 +1,5 @@
 import dataclasses
-from ggsmm import errors
+from unverdad import errors
 import logging
 import pathlib
 import sqlite3

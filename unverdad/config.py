@@ -6,11 +6,11 @@ import pathlib
 import tomllib
 from typing import Any, Callable, Optional
 
-from ggsmm.errors import GgsmmError
+from unverdad.errors import UnverdadError
 
 logger = logging.getLogger(__name__)
 
-class ConfigError(GgsmmError):
+class ConfigError(UnverdadError):
     """Base class for all errors caused Config."""
     pass
 
@@ -24,7 +24,7 @@ class ConfigValueInvalid(ConfigError):
 
 class AppConfig:
     """App-level config variables that will not change (by the user)."""
-    APP_NAME = 'ggs-mm'
+    APP_NAME = 'unverdad'
 
     DATA_HOME = pathlib.Path(os.getenv('XDG_DATA_HOME', "~/.local/share")).expanduser() / APP_NAME
     CONFIG_HOME = pathlib.Path(os.getenv('XDG_CONFIG_HOME', "~/.config")).expanduser() / APP_NAME

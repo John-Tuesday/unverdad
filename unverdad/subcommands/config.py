@@ -2,7 +2,7 @@ import argparse
 import logging
 logger = logging.getLogger(__name__)
 
-from ggsmm import config
+from unverdad import config
 
 def attach(subparsers) -> argparse.ArgumentParser:
     parser = subparsers.add_parser(

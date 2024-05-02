@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import ggsmm
+import unverdad
 
 if __name__ == '__main__':
-    ggsmm.main()
+    unverdad.main()

@@ -1,13 +1,13 @@
 import argparse
-from ggsmm.config import AppConfig, Config
+from unverdad.config import AppConfig, Config
 import logging
 import subprocess
 import sys
 from typing import override
 logger = logging.getLogger(__name__)
 
-from ggsmm import subcommands
-from ggsmm.subcommands import subcommand
+from unverdad import subcommands
+from unverdad.subcommands import subcommand
 
 class InstallSubCmd(subcommand.SubCommand):
     """"Install mods."""

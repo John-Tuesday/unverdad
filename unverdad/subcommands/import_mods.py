@@ -2,9 +2,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from ggsmm import config
-from ggsmm.data import database
-from ggsmm.data import mod_table
+from unverdad import config
+from unverdad.data import database
+from unverdad.data import mod_table
 
 def attach(subparsers):
     parser = subparsers.add_parser(

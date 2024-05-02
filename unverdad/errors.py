@@ -1,3 +1,3 @@
-class GgsmmError(Exception):
+class UnverdadError(Exception):
     pass
 
