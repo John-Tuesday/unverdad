@@ -1,3 +1,10 @@
+"""Simplify writing user-friendly schema for configuration files.
+
+Built to work with TOML, but should work with any basic parsed data object
+like JSON; however, the export values will need to be tweaked.
+
+Provides easy documentation and help text as well as exporting a valid config.
+"""
 import dataclasses
 import logging
 import pathlib
@@ -179,7 +186,13 @@ class _SchemaTable:
             raise Exception(f'Unexpected keys')
         return namespace
 
-    def format_export_keys(self, namespace, *keys, use_fullname:bool=False):
+    def format_export_keys(self, namespace, *keys, use_fullname:bool=False) -> str:
+        """Format namespace attributes given by keys according to schema.
+        
+        Only supports shallow keys ... for now.
+
+        Returns: A valid toml string representing values of namespace at keys.
+        """
         vals = [f'[{self.__full_name}]'] if use_fullname and self.__full_name else []
         tables = []
         for key in keys:
