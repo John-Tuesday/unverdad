@@ -7,11 +7,15 @@ from typing import Optional
 TABLE_NAME = "pak"
 
 class PakError(enum.Enum):
+    """Error types used by PakReport."""
+
     STEM_MISMATCH = enum.auto()
     PAK_WRONG_EXTENSION = enum.auto()
     SIG_WRONG_EXTENSION = enum.auto()
 
 class PakReport:
+    """Collection of errors, if any, found during pak validation."""
+
     def __init__(self):
         self.errors = []
 
