@@ -21,3 +21,5 @@ def get_db(db, **kwargs):
             **kwargs)
     )
 
+def _new_uuid() -> uuid.UUID:
+    return uuid.uuid4()
