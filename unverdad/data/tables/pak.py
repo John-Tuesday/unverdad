@@ -6,6 +6,7 @@ from typing import Optional
 
 TABLE_NAME = "pak"
 
+
 class PakError(enum.Enum):
     """Error types used by PakReport."""
 
@@ -13,13 +14,14 @@ class PakError(enum.Enum):
     PAK_WRONG_EXTENSION = enum.auto()
     SIG_WRONG_EXTENSION = enum.auto()
 
+
 class PakReport:
     """Collection of errors, if any, found during pak validation."""
 
     def __init__(self):
         self.errors = []
 
-    def add_error(self, error:PakError):
+    def add_error(self, error: PakError):
         self.errors.append(error)
 
     def is_good(self) -> bool:
@@ -28,14 +30,15 @@ class PakReport:
     def to_exception(self) -> Optional[Exception]:
         if self.is_good():
             return None
-        msg = ' '.join([f"{e}" for e in self.errors])
-        return Exception(msg) 
+        msg = " ".join([f"{e}" for e in self.errors])
+        return Exception(msg)
 
     def good_or_raise(self):
         e = self.to_exception()
         if e is None:
             return self
         raise e
+
 
 @dataclasses.dataclass
 class PakEntity:
@@ -46,6 +49,7 @@ class PakEntity:
         pak_path: filepath of .pak, relative to mod home
         sig_path: filepath of .sig, relative to mod home
     """
+
     pak_id: uuid.UUID
     mod_id: uuid.UUID
     pak_path: pathlib.Path
@@ -64,34 +68,45 @@ class PakEntity:
             report.add_error(PakError.STEM_MISMATCH)
         return report
 
+
 def create_table(con):
     with con:
-        con.execute("""
+        con.execute(
+            """
 CREATE TABLE IF NOT EXISTS pak (
     pak_id uuid NOT NULL PRIMARY KEY,
     mod_id uuid NOT NULL,
     pak_path path NOT NULL,
     sig_path path NOT NULL
 )
-        """)
+        """
+        )
 
-def insert_many(con, data:list[PakEntity]):
+
+def insert_many(con, data: list[PakEntity]):
     d = [x._params() for x in data]
     with con:
-        con.executemany("""
+        con.executemany(
+            """
 INSERT INTO pak (pak_id, mod_id, pak_path, sig_path)
 VALUES (:pak_id, :mod_id, :pak_path, :sig_path)
-        """, d)
+        """,
+            d,
+        )
 
-def delete_many(con, ids:list[uuid.UUID]):
-    d = [ {"pak_id":x} for x in ids]
+
+def delete_many(con, ids: list[uuid.UUID]):
+    d = [{"pak_id": x} for x in ids]
     with con:
-        con.executemany("""
+        con.executemany(
+            """
 DELETE FROM pak
 VALUES pak_id = :pak_id
-        """, d)
+        """,
+            d,
+        )
+
 
 def delete_all(con):
     with con:
         con.execute("DELETE FROM pak")
-
