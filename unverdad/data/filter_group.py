@@ -93,10 +93,6 @@ class FilterGroup:
         self.__where_clause = s if len(s) == 0 else f"WHERE {s}"
         return self.__where_clause
 
-    def where_params(self) -> dict[str, Any]:
-        """Return named parameters pair with assigned values."""
-        return self.__data
-
     def params(self) -> types.MappingProxyType[str, Any]:
         """Returns read-only dict of named parameters to assigned values."""
         return types.MappingProxyType(self.__data)
