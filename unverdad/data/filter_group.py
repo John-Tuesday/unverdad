@@ -72,13 +72,15 @@ class FilterGroup:
 
         Args:
             use_or: Connect statements using OR if true, otherwise use AND
-            use_parentheses: Surround output in (). Default is True
+            use_parentheses:
+                Surround output in (), if non-empty.
+                Default is True.
         """
         if use_parentheses is None:
             use_parentheses = True
         op_text = "OR" if use_or else "AND"
         s = f" {op_text} ".join(self.__clause_conds)
-        if use_parentheses:
+        if s and use_parentheses:
             s = f"({s})"
         return s
 
