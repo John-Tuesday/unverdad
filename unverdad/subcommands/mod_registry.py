@@ -60,16 +60,6 @@ def __pretty_mod_row(mod_row):
     return f"{mod_row["name"]}\n{prefix}{s}"
 
 
-def __on_show_all(conf, con):
-    """"""
-    data = []
-    with con:
-        for mod_row in con.execute("SELECT * FROM mod"):
-            data.append(__pretty_mod_row(mod_row))
-    msg = "\n".join(data)
-    logger.info(f"{msg}")
-
-
 def __on_show(
     conf,
     con,
@@ -79,14 +69,14 @@ def __on_show(
     """"""
     data = []
     with con:
-        where_clause = filter.gen_sql_text(use_or=True, use_parentheses=True)
+        sql_clause = filter.gen_sql_text(use_or=True, use_parentheses=True)
         params = filter.params()
         if game_id:
-            where_clause = f"{where_clause} AND (game_id = :game_id)"
+            sql_clause = f"{sql_clause and f"{sql_clause} AND "}(game_id = :game_id)"
             params = params | {"game_id": game_id}
-        if where_clause:
-            where_clause = f"WHERE {where_clause}"
-        for mod_row in con.execute(f"SELECT * FROM mod {where_clause}", params):
+        if sql_clause:
+            sql_clause = f"WHERE {sql_clause}"
+        for mod_row in con.execute(f"SELECT * FROM mod {sql_clause}", params):
             data.append(__pretty_mod_row(mod_row))
     msg = "\n".join(data)
     logger.info(f"{msg}")
@@ -111,12 +101,9 @@ def hook(args):
             game_entity = tables.game.GameEntity(**game_row)
             game_id = game_entity.game_id
     logger.debug(f"{filter}")
-    if filter.is_not_empty():
-        __on_show(
-            args.config,
-            con=database.get_db(config.DB_FILE),
-            filter=filter,
-            game_id=game_id,
-        )
-    elif args.show_all:
-        __on_show_all(args.config, con=database.get_db(config.DB_FILE))
+    __on_show(
+        conf=args.config,
+        con=database.get_db(config.DB_FILE),
+        filter=filter,
+        game_id=game_id,
+    )
