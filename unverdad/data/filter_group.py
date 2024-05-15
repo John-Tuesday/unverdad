@@ -62,6 +62,25 @@ class FilterGroup:
         """Returns the opposite is_empty()."""
         return not self.is_empty()
 
+    def gen_sql_text(
+        self,
+        use_or: Optional[bool] = None,
+        use_parentheses: Optional[bool] = None,
+    ) -> str:
+        """Returns text to be used as a condition in SQLite.
+
+        Args:
+            use_or: Connect statements using OR if true, otherwise use AND
+            use_parentheses: Surround output in (). Default is True
+        """
+        if use_parentheses is None:
+            use_parentheses = True
+        op_text = "OR" if use_or else "AND"
+        s = f" {op_text} ".join(self.__clause_conds)
+        if use_parentheses:
+            s = f"({s})"
+        return s
+
     def where_clause(self, refresh: bool = False) -> str:
         """Convert filters to a WHERE clause; otherwise, return empty string.
 
