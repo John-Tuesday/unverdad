@@ -3,6 +3,7 @@
 
 import logging
 import uuid
+from typing import Optional
 
 from unverdad import config
 from unverdad.data import database, filter_group, tables
@@ -36,12 +37,23 @@ def attach(subparsers):
         dest="mod_names",
         default=[],
     )
+    parser.add_argument(
+        "--game-id",
+        help="Only include results for a particular game given its ID",
+        action="store",
+    )
+    parser.add_argument(
+        "--game-name",
+        help="Only include results for a particular game given its NAME",
+        action="store",
+    )
     return parser
 
 
 def __pretty_mod_row(mod_row):
     s = [f"enabled" if mod_row["enabled"] else "disabled"]
     s.append(f"mod id: '{mod_row["mod_id"]}'")
+    s.append(f"game_id: '{mod_row["game_id"]}'")
     prefix = "  | "
     s = f"\n{prefix}".join(s)
 
@@ -58,12 +70,22 @@ def __on_show_all(conf, con):
     logger.info(f"{msg}")
 
 
-def __on_show(conf, con, filter: filter_group.FilterGroup):
+def __on_show(
+    conf,
+    con,
+    filter: filter_group.FilterGroup,
+    game_id: Optional[uuid.UUID] = None,
+):
     """"""
     data = []
     with con:
-        where_clause = filter.where_clause()
+        where_clause = filter.gen_sql_text(use_or=True, use_parentheses=True)
         params = filter.where_params()
+        if game_id:
+            where_clause = f"{where_clause} AND (game_id = :game_id)"
+            params["game_id"] = game_id
+        if where_clause:
+            where_clause = f"WHERE {where_clause}"
         for mod_row in con.execute(f"SELECT * FROM mod {where_clause}", params):
             data.append(__pretty_mod_row(mod_row))
     msg = "\n".join(data)
@@ -73,14 +95,28 @@ def __on_show(conf, con, filter: filter_group.FilterGroup):
 def hook(args):
     """"""
     filter = filter_group.FilterGroup(tables.mod.ModEntity)
+    game_id = None
     for mod_id in args.mod_ids:
         filter.add_mod_id(uuid.UUID(mod_id))
         logger.debug(f"{filter}")
-    logger.debug(f"{filter}")
     for mod_name in args.mod_names:
         filter.add_name(mod_name)
+    if args.game_id:
+        game_id = uuid.UUID(args.game_id)
+    if args.game_name:
+        db = database.get_db(config.DB_FILE)
+        for game_row in db.execute(
+            "SELECT * FROM game WHERE name = :name", {"name": args.game_name}
+        ):
+            game_entity = tables.game.GameEntity(**game_row)
+            game_id = game_entity.game_id
     logger.debug(f"{filter}")
     if filter.is_not_empty():
-        __on_show(args.config, con=database.get_db(config.DB_FILE), filter=filter)
+        __on_show(
+            args.config,
+            con=database.get_db(config.DB_FILE),
+            filter=filter,
+            game_id=game_id,
+        )
     elif args.show_all:
         __on_show_all(args.config, con=database.get_db(config.DB_FILE))
