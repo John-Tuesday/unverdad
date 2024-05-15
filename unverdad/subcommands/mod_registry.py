@@ -80,10 +80,10 @@ def __on_show(
     data = []
     with con:
         where_clause = filter.gen_sql_text(use_or=True, use_parentheses=True)
-        params = filter.where_params()
+        params = filter.params()
         if game_id:
             where_clause = f"{where_clause} AND (game_id = :game_id)"
-            params["game_id"] = game_id
+            params = params | {"game_id": game_id}
         if where_clause:
             where_clause = f"WHERE {where_clause}"
         for mod_row in con.execute(f"SELECT * FROM mod {where_clause}", params):
