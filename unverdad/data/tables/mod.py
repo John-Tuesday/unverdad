@@ -1,4 +1,5 @@
 import dataclasses
+import functools
 import uuid
 from typing import Optional
 
