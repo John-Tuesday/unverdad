@@ -1,3 +1,9 @@
+"""SQL table for mod registry.
+
+Module level functions are for manipulating the table.
+
+"""
+
 import dataclasses
 import functools
 import uuid
@@ -26,6 +32,10 @@ class ModEntity:
 
 
 def create_table(con):
+    """Create mod table if it doesn't already exist.
+
+    This function does not check if the table schema matches wat is expected.
+    """
     with con:
         con.execute(
             """
@@ -41,6 +51,12 @@ CREATE TABLE IF NOT EXISTS mod (
 
 
 def insert_many(con, data: list[ModEntity]):
+    """Insert each of data into mod table.
+
+    Args:
+        con: Database connection or cursor
+        data: List of items to be inserted into table
+    """
     d = [x._params() for x in data]
     with con:
         con.executemany(
@@ -53,6 +69,7 @@ VALUES (:mod_id, :gb_mod_id, :game_id, :name, :enabled)
 
 
 def delete_many(con, ids: list[uuid.UUID]):
+    """Delete each row whose mod_id is in the supplied ids."""
     d = [{"mod_id": x} for x in ids]
     with con:
         con.executemany(
@@ -65,5 +82,6 @@ WHERE mod_id = :mod_id
 
 
 def delete_all(con):
+    """Delete all rows of mod table."""
     with con:
         con.execute("DELETE FROM mod")

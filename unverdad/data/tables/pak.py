@@ -1,3 +1,10 @@
+"""SQL table for pak and sig files.
+
+This table ties .pak and .sig files to each other and to a mod in the mod table.
+Module level function are for manipulating the table.
+
+"""
+
 import dataclasses
 import enum
 import pathlib
@@ -70,6 +77,10 @@ class PakEntity:
 
 
 def create_table(con):
+    """Create table if it doesn't exist.
+
+    This function does not check if the schema is as expected.
+    """
     with con:
         con.execute(
             """
@@ -84,6 +95,7 @@ CREATE TABLE IF NOT EXISTS pak (
 
 
 def insert_many(con, data: list[PakEntity]):
+    """Insert each of data into pak table."""
     d = [x._params() for x in data]
     with con:
         con.executemany(
@@ -96,6 +108,7 @@ VALUES (:pak_id, :mod_id, :pak_path, :sig_path)
 
 
 def delete_many(con, ids: list[uuid.UUID]):
+    """Delete each row whose pak_id is in ids."""
     d = [{"pak_id": x} for x in ids]
     with con:
         con.executemany(
@@ -108,5 +121,6 @@ VALUES pak_id = :pak_id
 
 
 def delete_all(con):
+    """Delete all rows of table pak."""
     with con:
         con.execute("DELETE FROM pak")

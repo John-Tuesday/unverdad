@@ -1,3 +1,8 @@
+"""SQL table game
+
+Module level functions are for manipulating the table.
+"""
+
 import dataclasses
 import uuid
 from typing import Optional
@@ -7,6 +12,8 @@ TABLE_NAME = "game"
 
 @dataclasses.dataclass
 class GameEntity:
+    """Mirrors the expected schema of game table."""
+
     game_id: uuid.UUID
     name: str
     gb_game_id: Optional[str] = None
@@ -16,6 +23,10 @@ class GameEntity:
 
 
 def create_table(con):
+    """Create table if it doesn't exist yet.
+
+    This function does not check if the schema is as expected.
+    """
     with con:
         con.execute(
             """
@@ -29,6 +40,7 @@ def create_table(con):
 
 
 def insert_one(con, data: GameEntity):
+    """Insert a single row into the table."""
     with con:
         con.execute(
             """
@@ -40,6 +52,7 @@ def insert_one(con, data: GameEntity):
 
 
 def delete_many(con, ids: list[uuid.UUID]):
+    """Delete each row whose game_id is in ids."""
     with con:
         con.executemany(
             """
@@ -51,5 +64,6 @@ def delete_many(con, ids: list[uuid.UUID]):
 
 
 def delete_all(con):
+    """Delete all rows in table."""
     with con:
         con.execute("""DELETE FROM game""")
