@@ -1,5 +1,6 @@
 import dataclasses
 import functools
+import types
 from typing import Any, Optional
 
 
@@ -95,3 +96,7 @@ class FilterGroup:
     def where_params(self) -> dict[str, Any]:
         """Return named parameters pair with assigned values."""
         return self.__data
+
+    def params(self) -> types.MappingProxyType[str, Any]:
+        """Returns read-only dict of named parameters to assigned values."""
+        return types.MappingProxyType(self.__data)
