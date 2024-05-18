@@ -81,9 +81,11 @@ def __on_show(
 
 def hook(args):
     """"""
-    conditions = builders.ConditionBuilderBranch(or_join=False)
-    or_conds = conditions.add_subfilter(or_join=True)
-    and_conds = conditions.add_subfilter(or_join=False)
+    conditions = builders.ConditionBuilderBranch(
+        combine_operator=builders.LogicalOperator.AND,
+    )
+    or_conds = conditions.add_subfilter(combine_operator=builders.LogicalOperator.OR)
+    and_conds = conditions.add_subfilter(combine_operator=builders.LogicalOperator.AND)
     for mod_id in args.mod_ids:
         or_conds._add_param(column_name="mod_id", column_value=mod_id)
     for mod_name in args.mod_names:

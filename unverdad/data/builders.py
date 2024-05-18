@@ -5,6 +5,11 @@ import typing
 from typing import Any, Optional, Self, override
 
 
+class LogicalOperator(enum.Enum):
+    OR = enum.auto()
+    AND = enum.auto()
+
+
 class CompareOperator(enum.Enum):
     """SQLite operator used to compare a column against a value."""
 
@@ -69,7 +74,7 @@ class ConditionBuilder(typing.Protocol):
     def __init__(
         self,
         *args,
-        or_join: bool = True,
+        combine_operator: Optional[LogicalOperator] = None,
         param_generator: Optional[ParamGenerator] = None,
         **kwargs,
     ):
@@ -102,20 +107,21 @@ class ConditionBuilderNode(ConditionBuilder):
 
     def __init__(
         self,
-        or_join: bool = True,
         table_name: Optional[str] = None,
+        combine_operator: Optional[LogicalOperator] = None,
         param_generator: Optional[ParamGenerator] = None,
     ):
         """Configure initial settings which should remain immutable.
 
         Args:
-            or_join: If True, combine parameters using OR; otherwise use AND
+            combine_operator: Combine children using this. Default is OR.
             table_name: Optionally, specificy table alias for column names.
             param_generator:
                 Generate placeholder name given a column name.
                 If None, use DefaultParamGenerator with the table name as the prefix.
         """
-        self.__seperator: str = " OR " if or_join else " AND "
+        combine_operator = combine_operator or LogicalOperator.OR
+        self.__seperator: str = f" {combine_operator.name} "
         self.__table_name = table_name
         self.__param_generator = param_generator or DefaultParamGenerator(
             prefix=self.__table_name
@@ -176,17 +182,18 @@ class ConditionBuilderBranch(ConditionBuilder):
     @override
     def __init__(
         self,
-        or_join: bool = False,
+        combine_operator: Optional[LogicalOperator] = None,
         param_generator: Optional[ParamGenerator] = None,
     ):
         """
         Args:
-            or_join: Combine children using OR when True; otherwise, use AND.
+            combine_operator: Combine children using this operator. Default is AND.
             param_generator:
                 Parent param_generator which will spawn children as necessary.
                 If None, uses DefaultParamGenerator.
         """
-        self.__or_join = or_join
+        combine_operator = combine_operator or LogicalOperator.AND
+        self.__seperator = f" {combine_operator.name} "
         self.__subfilters: list[ConditionBuilder] = []
         self.__param_generator = param_generator or DefaultParamGenerator()
 
@@ -198,8 +205,7 @@ class ConditionBuilderBranch(ConditionBuilder):
 
     @override
     def render(self) -> str:
-        sep = " OR " if self.__or_join else " AND "
-        s = sep.join([x.render() for x in self.__subfilters if x])
+        s = self.__seperator.join([x.render() for x in self.__subfilters if x])
         return s and f"({s})"
 
     @override
@@ -216,7 +222,7 @@ class ConditionBuilderBranch(ConditionBuilder):
     ](
         self,
         child_cls: Optional[type[T | Self]] = None,
-        or_join: bool = False,
+        combine_operator: Optional[LogicalOperator] = None,
         args: list = [],
         **kwargs,
     ) -> (T | Self):
@@ -226,14 +232,14 @@ class ConditionBuilderBranch(ConditionBuilder):
 
         Args:
             factory: Factory used to generate subcontainer.
-            or_join: Passed to constructor for convenience.
+            combine_operator: Passed to constructor for convenience.
             args: List of positional arguments passed to constructor.
         """
         if child_cls is None:
             child_cls = type(self)
         cont = child_cls(
             *args,
-            or_join=or_join,
+            combine_operator=combine_operator,
             param_generator=self.__param_generator.spawn_child(),
             **kwargs,
         )
@@ -245,7 +251,7 @@ class ConditionBuilderBranch(ConditionBuilder):
     ](
         self,
         filter_cls: type[T] = ConditionBuilderNode,
-        or_join: bool = False,
+        combine_operator: Optional[LogicalOperator] = None,
         table_name: Optional[str] = None,
         args: list = [],
         **kwargs,
@@ -256,13 +262,13 @@ class ConditionBuilderBranch(ConditionBuilder):
 
         Args:
             filter_cls: Class used to construct subfilter.
-            or_join: Passed to constructor.
+            combine_operator: Passed to constructor.
             table_name: Used when spawning child param_generator. Passed to constructor.
             args: List of positional arguments passed to constructor.
         """
         subfilter = filter_cls(
             *args,
-            or_join=or_join,
+            combine_operator=combine_operator,
             table_name=table_name,
             param_generator=self.__param_generator.spawn_child(prefix=table_name),
             **kwargs,
