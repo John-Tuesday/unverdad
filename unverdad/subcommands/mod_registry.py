@@ -5,7 +5,7 @@ import logging
 import uuid
 
 from unverdad import config
-from unverdad.data import database, filter_group, tables
+from unverdad.data import builders, database, tables
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ def __pretty_mod_row(mod_row):
 def __on_show(
     conf,
     con,
-    cond: filter_group.ConditionBuilder,
+    cond: builders.ConditionBuilder,
 ):
     """"""
     data = []
@@ -81,7 +81,7 @@ def __on_show(
 
 def hook(args):
     """"""
-    conditions = filter_group.ConditionBuilderBranch(or_join=False)
+    conditions = builders.ConditionBuilderBranch(or_join=False)
     or_conds = conditions.add_subfilter(or_join=True)
     and_conds = conditions.add_subfilter(or_join=False)
     for mod_id in args.mod_ids:
