@@ -59,13 +59,28 @@ class NamedParams(dict[str, Any]):
     """Read-only dict which raises a TypeError on mutatable function calls.
 
     Directly inherit from dict because sqlite3 doesn't recognize anything else.
+
+    >>> NamedParams({})["foo"] = "value"
+    Traceback (most recent call last):
+        ...
+    TypeError: <class 'builders.NamedParams'> is read-only and forbids __setitem__
+
+    >>> del NamedParams({})["foo"]
+    Traceback (most recent call last):
+        ...
+    TypeError: <class 'builders.NamedParams'> is read-only and forbids __delitem__
     """
 
     def __setitem__(self, *_):
-        raise TypeError(f"'{type(self)}' is read-only and forbids __setitem__")
+        """Forbidden raise TypeError"""
+        raise TypeError(f"{type(self)} is read-only and forbids __setitem__")
 
     def __delitem__(self, _):
-        raise TypeError(f"'{type(self)}' is read-only and forbids __delitem__")
+        """Forbidden raise TypeError"""
+        raise TypeError(f"{type(self)} is read-only and forbids __delitem__")
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({super().__repr__()})"
 
 
 class ConditionBuilder(typing.Protocol):
