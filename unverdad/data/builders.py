@@ -1,4 +1,3 @@
-import dataclasses
 import enum
 import io
 import typing
@@ -6,6 +5,8 @@ from typing import Any, Optional, Self, override
 
 
 class LogicalOperator(enum.Enum):
+    """SQLite logical operators."""
+
     OR = enum.auto()
     AND = enum.auto()
 
@@ -168,7 +169,7 @@ class ConditionBuilderNode(ConditionBuilder):
         column_value: T,
         column_type: Optional[type[T]] = None,
         operator: CompareOperator = CompareOperator.EQUAL,
-    ):
+    ) -> None:
         """Add named parameter and conditionial to output.
 
         Args:
@@ -178,7 +179,9 @@ class ConditionBuilderNode(ConditionBuilder):
             operator: comparison operator between actual and expected, respectively.
         """
         if column_type is not None and not isinstance(column_value, column_type):
-            raise TypeError("")
+            raise TypeError(
+                f"{type(column_value)=} needs to be an instance of {column_type}"
+            )
         param_name = self.__param_generator(column_name)
         if not self.is_empty():
             self.__output.write(self.__seperator)
