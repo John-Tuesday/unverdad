@@ -2,10 +2,7 @@
 """
 
 import logging
-import types
 import uuid
-from collections import abc
-from typing import Optional
 
 from unverdad import config
 from unverdad.data import database, filter_group, tables
@@ -30,6 +27,7 @@ def attach(subparsers):
         action="append",
         dest="mod_ids",
         default=[],
+        type=uuid.UUID,
     )
     parser.add_argument(
         "--mod-name",
@@ -43,6 +41,7 @@ def attach(subparsers):
         "--game-id",
         help="Only include results for a particular game given its ID",
         action="store",
+        type=uuid.UUID,
     )
     parser.add_argument(
         "--game-name",
@@ -65,13 +64,13 @@ def __pretty_mod_row(mod_row):
 def __on_show(
     conf,
     con,
-    filter: filter_group.ConditionBuilder,
+    cond: filter_group.ConditionBuilder,
 ):
     """"""
     data = []
     with con:
-        sql_clause = filter.render()
-        params = filter.params()
+        sql_clause = cond.render()
+        params = cond.params()
         if sql_clause:
             sql_clause = f"WHERE {sql_clause}"
         for mod_row in con.execute(f"SELECT * FROM mod {sql_clause}", params):
@@ -82,33 +81,27 @@ def __on_show(
 
 def hook(args):
     """"""
-    filter = filter_group.ConditionBuilderBranch(or_join=False)
-    or_conds = filter.add_subfilter(or_join=True)
-    and_conds = filter.add_subfilter(or_join=False)
+    conditions = filter_group.ConditionBuilderBranch(or_join=False)
+    or_conds = conditions.add_subfilter(or_join=True)
+    and_conds = conditions.add_subfilter(or_join=False)
     for mod_id in args.mod_ids:
-        # filter.add_mod_id(uuid.UUID(mod_id))
-        or_conds._add_param(column_name="mod_id", column_value=uuid.UUID(mod_id))
+        or_conds._add_param(column_name="mod_id", column_value=mod_id)
     for mod_name in args.mod_names:
-        # filter.add_name(mod_name)
         or_conds._add_param(column_name="name", column_value=mod_name)
     if args.game_id:
-        # game_id = uuid.UUID(args.game_id)
-        and_conds._add_param(
-            column_name="game_id", column_value=uuid.UUID(args.game_id)
-        )
+        and_conds._add_param(column_name="game_id", column_value=args.game_id)
     if args.game_name:
         db = database.get_db(config.DB_FILE)
         for game_row in db.execute(
             "SELECT * FROM game WHERE name = :name", {"name": args.game_name}
         ):
             game_entity = tables.game.GameEntity(**game_row)
-            # game_id = game_entity.game_id
             and_conds._add_param(
                 column_name="game_id", column_value=game_entity.game_id
             )
-    logger.debug(f"{filter}")
+    logger.debug(f"{conditions}")
     __on_show(
         conf=args.config,
         con=database.get_db(config.DB_FILE),
-        filter=filter,
+        cond=conditions,
     )
