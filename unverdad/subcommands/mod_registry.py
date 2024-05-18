@@ -51,16 +51,6 @@ def attach(subparsers):
     return parser
 
 
-def __pretty_mod_row(mod_row):
-    s = [f"enabled" if mod_row["enabled"] else "disabled"]
-    s.append(f"mod id: '{mod_row["mod_id"]}'")
-    s.append(f"game_id: '{mod_row["game_id"]}'")
-    prefix = "  | "
-    s = f"\n{prefix}".join(s)
-
-    return f"{mod_row["name"]}\n{prefix}{s}"
-
-
 def __on_show(
     conf,
     con,
@@ -74,8 +64,10 @@ def __on_show(
         if sql_clause:
             sql_clause = f"WHERE {sql_clause}"
         for mod_row in con.execute(f"SELECT * FROM mod {sql_clause}", params):
-            data.append(__pretty_mod_row(mod_row))
-    msg = "\n".join(data)
+            s = "\n".join([f"| {key} = {mod_row[key]}" for key in mod_row.keys()])
+            s = f"{mod_row["name"]}\n{s}"
+            data.append(s)
+    msg = "\n\n".join(data)
     logger.info(f"{msg}")
 
 
