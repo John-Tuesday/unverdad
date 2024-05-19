@@ -20,6 +20,7 @@ def create_table(con):
             category_id uuid NOT NULL PRIMARY KEY,
             parent_id uuid,
             name TEXT NOT NULL,
+            CHECK (parent_id != category_id),
             FOREIGN KEY (parent_id)
             REFERENCES category (category_id)
                 ON DELETE CASCADE
