@@ -72,7 +72,7 @@ VALUES (:mod_id, :gb_mod_id, :game_id, :name, :enabled)
         )
 
 
-def update_many(con, data: list[ModEntity]):
+def replace_many(con, data: list[ModEntity]):
     with con:
         con.execute(
             """

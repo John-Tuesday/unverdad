@@ -2,6 +2,7 @@
 """
 
 import logging
+import sqlite3
 import uuid
 
 from unverdad import config
@@ -14,11 +15,16 @@ def attach(subparsers):
     parser = subparsers.add_parser(
         "mod-registry", help="interact with imported, but not installed mods."
     )
-    parser.add_argument(
-        "--show-all",
-        help="Show all mods in registry",
+    enabled_group = parser.add_mutually_exclusive_group()
+    enabled_group.add_argument(
+        "--enable",
+        help="enable matching mods",
         action="store_true",
-        default=True,
+    )
+    enabled_group.add_argument(
+        "--disable",
+        help="disable matching mods",
+        action="store_true",
     )
     parser.add_argument(
         "--mod-id",
@@ -71,6 +77,18 @@ def __on_show(
     logger.info(f"{msg}")
 
 
+def __on_set(
+    con: sqlite3.Connection,
+    cond: builders.ConditionBuilder,
+    enabled: bool,
+) -> None:
+    with con:
+        con.execute(
+            f"UPDATE mod SET enabled = :enabled WHERE {cond.render()}",
+            cond.params() | {"enabled": enabled},
+        )
+
+
 def hook(args):
     """"""
     conditions = builders.ConditionBuilderBranch(
@@ -94,6 +112,17 @@ def hook(args):
                 column_name="game_id", column_value=game_entity.game_id
             )
     logger.debug(f"{conditions}")
+    enable = None
+    if args.enable:
+        enable = True
+    elif args.disable:
+        enable = False
+    if enable is not None:
+        __on_set(
+            con=database.get_db(),
+            cond=conditions,
+            enabled=enable,
+        )
     __on_show(
         conf=args.config,
         con=database.get_db(),
