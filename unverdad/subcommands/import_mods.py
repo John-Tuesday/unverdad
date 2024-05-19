@@ -5,10 +5,9 @@ import logging
 import pathlib
 import uuid
 
-logger = logging.getLogger(__name__)
-
-from unverdad import config
 from unverdad.data import database, tables
+
+logger = logging.getLogger(__name__)
 
 
 def attach(subparsers):
@@ -78,7 +77,7 @@ def hook(args):
     conf = args.config
     if args.refresh:
         logger.info(f"refresh metadata")
-        con = database.get_db(config.DB_FILE)
+        con = database.get_db()
         with con:
             tables.mod.delete_all(con)
             mods_dir = conf.mods_dir.expanduser().resolve()

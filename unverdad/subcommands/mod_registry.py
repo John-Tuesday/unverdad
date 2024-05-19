@@ -85,7 +85,7 @@ def hook(args):
     if args.game_id:
         and_conds._add_param(column_name="game_id", column_value=args.game_id)
     if args.game_name:
-        db = database.get_db(config.DB_FILE)
+        db = database.get_db()
         for game_row in db.execute(
             "SELECT * FROM game WHERE name = :name", {"name": args.game_name}
         ):
@@ -96,6 +96,6 @@ def hook(args):
     logger.debug(f"{conditions}")
     __on_show(
         conf=args.config,
-        con=database.get_db(config.DB_FILE),
+        con=database.get_db(),
         cond=conditions,
     )
