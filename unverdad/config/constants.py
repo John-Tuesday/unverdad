@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 APP_NAME = "unverdad"
 APP_VERSION = "0.0.0"
+STAGE: str = "production"
 
 DATA_HOME = (
     pathlib.Path(os.getenv("XDG_DATA_HOME", "~/.local/share")).expanduser() / APP_NAME
