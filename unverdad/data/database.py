@@ -52,7 +52,8 @@ def get_db() -> sqlite3.Connection:
     global __db
     in_memory: bool = True
     if __db is None:
-        __db = __connect(db=":memory:" if in_memory else config.DB_FILE)
+        __db = __connect(db=config.DB_FILE)
+        # __db = __connect(db=":memory:" if in_memory else config.DB_FILE)
     return __db
 
 
