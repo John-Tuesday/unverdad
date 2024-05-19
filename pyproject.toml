@@ -24,7 +24,7 @@ requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 [tool.pdm]
-version = { source="file", path="unverdad/__init__.py" }
+version = { source="file", path="unverdad/config/constants.py" }
 build.package-dir = "unverdad"
 
 [[tool.pdm.source]]

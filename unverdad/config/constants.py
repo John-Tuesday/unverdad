@@ -5,7 +5,8 @@ import pathlib
 logger = logging.getLogger(__name__)
 
 APP_NAME = "unverdad"
-APP_VERSION = "0.0.0"
+__version__ = "0.0.0"
+APP_VERSION = __version__
 STAGE: str = "production"
 
 DATA_HOME = (
