@@ -1,8 +1,8 @@
-from unverdad.data.tables import game, mod, pak
+from unverdad.data.tables import category, game, mod, mod_category, pak
 
 
 def as_list():
-    return [game, mod, pak]
+    return [category, game, mod, mod_category, pak]
 
 
 def init_tables(con):

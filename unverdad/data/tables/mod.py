@@ -44,7 +44,11 @@ CREATE TABLE IF NOT EXISTS mod (
     gb_mod_id,
     game_id uuid NOT NULL,
     name TEXT NOT NULL UNIQUE,
-    enabled bool CHECK (enabled = 0 or enabled = 1)
+    enabled bool CHECK (enabled = 0 or enabled = 1),
+    FOREIGN KEY (game_id)
+    REFERENCES game (game_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 )
         """
         )
@@ -65,6 +69,23 @@ INSERT INTO mod (mod_id, gb_mod_id, game_id, name, enabled)
 VALUES (:mod_id, :gb_mod_id, :game_id, :name, :enabled)
         """,
             d,
+        )
+
+
+def update_many(con, data: list[ModEntity]):
+    with con:
+        con.execute(
+            """
+        UPDATE mod
+        SET
+            gb_mod_id = :gb_mod_id,
+            game_id = :game_id,
+            name = :name,
+            enabled = :enabled
+        WHERE
+            mod_id = :mod_id
+            """,
+            [dataclasses.asdict(x) for x in data],
         )
 
 
