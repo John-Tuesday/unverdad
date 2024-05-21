@@ -148,8 +148,8 @@ class ConditionBuilderNode(ConditionBuilder):
 
     @override
     def is_empty(self) -> bool:
-        """Returns True if and only if no filter parameters have been added."""
-        return len(self.__params) == 0
+        """Returns True if and only if the rendered output would be empty."""
+        return self.__output.tell() == 1
 
     @override
     def render(self) -> str:
@@ -172,6 +172,9 @@ class ConditionBuilderNode(ConditionBuilder):
     ) -> None:
         """Add named parameter and conditionial to output.
 
+        In order to compare against NULL, like IS NULL or IS NOT NULL, use None for
+        column_value and use either EQUAL or NOT_EQUAL for operator.
+
         Args:
             column_name: Name of the SQLite column.
             column_value: Value must convert into a type SQLite understands.
@@ -182,13 +185,27 @@ class ConditionBuilderNode(ConditionBuilder):
             raise TypeError(
                 f"{type(column_value)=} needs to be an instance of {column_type}"
             )
-        param_name = self.__param_generator(column_name)
+        op = f"{operator.value}"
+        if column_value is None:
+            if operator is CompareOperator.EQUAL:
+                op = "IS NULL"
+            elif operator is CompareOperator.NOT_EQUAL:
+                op = "IS NOT NULL"
+            else:
+                raise ValueError(
+                    f"operator must be either EQUAL or NOT EQUAL when comparing against NULL, but found {operator}"
+                )
         if not self.is_empty():
             self.__output.write(self.__seperator)
         if self.__table_name:
             self.__output.write(f"{self.__table_name}.")
-        self.__output.write(f"{column_name} {operator.value} :{param_name}")
-        self.__params[param_name] = column_value
+        self.__output.write(f"{column_name} ")
+        if column_value is None:
+            self.__output.write(f"{op}")
+        else:
+            param_name = self.__param_generator(column_name)
+            self.__output.write(f"{op} :{param_name}")
+            self.__params[param_name] = column_value
 
 
 class ConditionBuilderBranch(ConditionBuilder):
