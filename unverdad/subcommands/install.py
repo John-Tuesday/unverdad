@@ -6,7 +6,7 @@ import logging
 import subprocess
 import uuid
 
-from unverdad.data import builders, database
+from unverdad.data import builders, database, views
 
 
 def attach(subparsers) -> argparse.ArgumentParser:
@@ -51,20 +51,9 @@ def hook(args) -> None:
     for mod_id in args.mod_ids:
         mod_conds._add_param(column_name="mod_id", column_value=mod_id)
     db = database.get_db()
-    sql_statement = """
-        SELECT 
-            mod.mod_id,
-            mod.name AS mod_name,
-            game.name AS game_name,
-            game.game_id,
-            game.game_path,
-            game.game_path_offset,
-            game.mods_home_relative_path 
-        FROM mod
-        INNER JOIN game USING(game_id)
-    """
+    sql_statement = "SELECT * FROM v_mod"
     if conditions:
-        sql_statement = f"{sql_statement} WHERE {conditions.render()}"
+        sql_statement = f"{sql_statement}\nWHERE {conditions.render()}"
     logger.debug(f"{sql_statement=!s}")
     for mod_row in db.execute(sql_statement, conditions.params()):
         mod_id = mod_row["mod_id"]
