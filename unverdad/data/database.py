@@ -3,7 +3,7 @@ import sqlite3
 import uuid
 
 from unverdad import config
-from unverdad.data import tables
+from unverdad.data import tables, views
 
 sqlite3.register_converter("bool", lambda b: False if int(b) == 0 else True)
 sqlite3.register_adapter(bool, lambda b: 1 if b else 0)
@@ -45,6 +45,7 @@ def __connect(
     con.autocommit = autocommit
     con.row_factory = UnverdadRow
     tables.init_tables(con)
+    views.init_views(con)
     return con
 
 
