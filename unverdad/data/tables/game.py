@@ -4,6 +4,7 @@ Module level functions are for manipulating the table.
 """
 
 import dataclasses
+import pathlib
 import uuid
 from typing import Optional
 
@@ -12,11 +13,24 @@ TABLE_NAME = "game"
 
 @dataclasses.dataclass
 class GameEntity:
-    """Mirrors the expected schema of game table."""
+    """Mirrors the expected schema of game table.
+
+    Attributes:
+        game_path: Path to game's root installation directory.
+        game_path_offset:
+            Path between game_path and mods home directory. Missing directories will
+            not be created, unlike mods_home_relative_path
+        mods_home_relative_path:
+            Path relative to game_path_offset, which is the root directory for all
+            mods. Missing parents will be created.
+    """
 
     game_id: uuid.UUID
     name: str
+    game_path_offset: pathlib.Path
+    mods_home_relative_path: pathlib.Path
     gb_game_id: Optional[str] = None
+    game_path: Optional[pathlib.Path] = None
 
     def _params(self):
         return dataclasses.asdict(self)
@@ -33,7 +47,10 @@ def create_table(con):
         CREATE TABLE IF NOT EXISTS game (
             game_id uuid NOT NULL PRIMARY KEY,
             gb_game_id TEXT,
-            name TEXT NOT NULL UNIQUE 
+            name TEXT NOT NULL UNIQUE,
+            game_path path UNIQUE,
+            game_path_offset path NOT NULL,
+            mods_home_relative_path path NOT NULL
         )
         """
         )
@@ -44,8 +61,8 @@ def insert_one(con, data: GameEntity):
     with con:
         con.execute(
             """
-        INSERT INTO game (game_id, gb_game_id, name)
-        VALUES (:game_id, :gb_game_id, :name)
+        INSERT INTO game (game_id, gb_game_id, name, mods_home_relative_path, game_path, game_path_offset)
+        VALUES (:game_id, :gb_game_id, :name, :mods_home_relative_path, :game_path, :game_path_offset)
         """,
             data._params(),
         )
