@@ -13,29 +13,6 @@ from unverdad import subcommands
 from unverdad.subcommands import subcommand
 
 
-class InstallSubCmd(subcommand.SubCommand):
-    """ "Install mods."""
-
-    @override
-    def attach(self, subparsers) -> argparse.ArgumentParser:
-        return subparsers.add_parser("install", help="install all mods")
-
-    @override
-    def hook(self, args):
-        logger.info("install mods")
-        config = args.config
-        config.install_dir.mkdir(exist_ok=True)
-        result = subprocess.run(
-            ["cp", "--verbose", "--recursive", config.mods_dir, config.install_dir],
-            capture_output=True,
-            text=True,
-        )
-        logger.debug(result.stdout)
-        result.check_returncode()
-        logger.info("install finished")
-        return
-
-
 class UninstallSubCmd(subcommand.SubCommand):
     """Uninstall mods."""
 
@@ -73,7 +50,7 @@ class ReinstallSubCmd(subcommand.SubCommand):
     def hook(self, args):
         logger.info("reinstall")
         UninstallSubCmd().hook(args)
-        InstallSubCmd().hook(args)
+        subcommands.install.hook(args)
 
 
 class ClearLogSubCmd(subcommand.SubCommand):
@@ -89,11 +66,8 @@ class ClearLogSubCmd(subcommand.SubCommand):
 def parse_args(
     root_logger: logging.Logger = logging.getLogger(),
     subcommands: list[subcommand.SubCommand] = [
-        # subcommands.config,
-        InstallSubCmd(),
         UninstallSubCmd(),
         ReinstallSubCmd(),
-        # subcommands.info,
         ClearLogSubCmd(),
     ]
     + subcommands.as_list(),
