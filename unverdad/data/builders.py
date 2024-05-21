@@ -240,8 +240,15 @@ class ConditionBuilderBranch(ConditionBuilder):
 
     @override
     def render(self) -> str:
-        s = self.__seperator.join([x.render() for x in self.__subfilters if x])
-        return s and f"({s})"
+        children = [x.render() for x in self.__subfilters if x]
+        s = self.__seperator.join(children)
+        match len(children):
+            case 0:
+                return ""
+            case 1:
+                return s
+            case _:
+                return f"({s})"
 
     @override
     def params(self) -> NamedParams:
