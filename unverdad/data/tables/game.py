@@ -33,7 +33,7 @@ def create_table(con):
         CREATE TABLE IF NOT EXISTS game (
             game_id uuid NOT NULL PRIMARY KEY,
             gb_game_id TEXT,
-            name TEXT
+            name TEXT NOT NULL UNIQUE 
         )
         """
         )
