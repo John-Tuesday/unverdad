@@ -6,7 +6,7 @@ import logging
 import subprocess
 import uuid
 
-from unverdad.data import builders, database, views
+from unverdad.data import builders, database, tables, views
 
 
 def attach(subparsers) -> argparse.ArgumentParser:
@@ -56,23 +56,17 @@ def hook(args) -> None:
         sql_statement = f"{sql_statement}\nWHERE {conditions.render()}"
     logger.debug(f"{sql_statement=!s}")
     for mod_row in db.execute(sql_statement, conditions.params()):
-        mod_id = mod_row["mod_id"]
-        mod_name = mod_row["mod_name"]
-        game_path = mod_row["game_path"]
-        game_path_offset = mod_row["game_path_offset"]
-        mod_home = mod_row["mods_home_relative_path"]
-        game_name = mod_row["game_name"]
-        game_id = mod_row["game_id"]
-        if game_path is None:
+        mod = views.ModView(**mod_row)
+        if mod.game_path is None:
             logger.error(
-                f"skipping mod '{mod_name}' because game path is not defined for game '{game_name}' [{game_id}]"
+                f"skipping mod '{mod.mod_name}' because game path is not defined for game '{mod.game_name}' [{mod.game_id}]"
             )
             continue
-        destination = (game_path / game_path_offset).expanduser()
+        destination = (mod.game_path / mod.game_path_offset).expanduser()
         if not destination.is_dir():
             logger.error(f"Game path offset is not a valid directory")
             continue
-        destination = (destination / mod_home).resolve()
+        destination = (destination / mod.mods_home_relative_path).resolve()
         if args.dry_run:
             logger.info(f"DRY: mkdir -p '{destination}'")
         else:
@@ -81,24 +75,25 @@ def hook(args) -> None:
             logger.error(f"{destination} destination is not a valid directory")
             continue
         mod_files = []
-        for pak_row in db.execute(f"SELECT * FROM pak WHERE mod_id = ?", [mod_id]):
-            path = args.config.mods_dir.expanduser() / pak_row["pak_path"]
+        for pak_row in db.execute(f"SELECT * FROM pak WHERE mod_id = ?", [mod.mod_id]):
+            pak = tables.pak.PakEntity(**pak_row)
+            path = args.config.mods_dir.expanduser() / pak.pak_path
             if not path.is_file():
                 logger.error(
-                    f"skipping mod '{mod_name}' because '{path}' is not a valid file"
+                    f"skipping mod '{mod.mod_name}' because '{path}' is not a valid file"
                 )
                 mod_files = []
                 break
             mod_files.append(path)
-            path = args.config.mods_dir.expanduser() / pak_row["pak_path"]
+            path = args.config.mods_dir.expanduser() / pak.sig_path
             if not path.is_file():
                 logger.error(
-                    f"skipping mod '{mod_name}' because '{path}' is not a valid file"
+                    f"skipping mod '{mod.mod_name}' because '{path}' is not a valid file"
                 )
                 mod_files = []
                 break
             mod_files.append(path)
-        logger.info(f"installing mod '{mod_name}' ({len(mod_files)} files)...")
+        logger.info(f"installing mod '{mod.mod_name}' ({len(mod_files)} files)...")
         for path in mod_files:
             path = args.config.mods_dir.expanduser() / path
             cmd = ["cp", "--verbose", path, destination]
