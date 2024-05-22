@@ -1,3 +1,4 @@
+import enum
 import pathlib
 import sqlite3
 import uuid
@@ -60,3 +61,40 @@ def get_db() -> sqlite3.Connection:
 
 def _new_uuid() -> uuid.UUID:
     return uuid.uuid4()
+
+
+class SchemaChange(enum.Enum):
+    """Difference between expected schema and found schema. Returned by verify_schema()."""
+
+    EQUAL = enum.auto()
+    DIFF = enum.auto()
+    NONEXISTENT = enum.auto()
+
+
+class SchemaType(enum.Enum):
+    """Schema type to check in verify verify_schema()."""
+
+    TABLE = "table"
+    INDEX = "index"
+    VIEW = "view"
+    TRIGGER = "trigger"
+
+
+def verify_schema(
+    con: sqlite3.Connection,
+    table_name: str,
+    expect_sql: str,
+    schema_type: SchemaType,
+) -> SchemaChange:
+    """Compare loaded schema word by word with expected (after casefolding each)."""
+    sql_statement = """
+        SELECT sql FROM sqlite_schema
+        WHERE type = ? AND name = ?
+    """
+    row = con.execute(sql_statement, [schema_type.value, table_name]).fetchone()
+    if row is None:
+        return SchemaChange.NONEXISTENT
+    actual_sql = row["sql"].casefold().split()
+    if actual_sql == expect_sql.casefold().split():
+        return SchemaChange.DIFF
+    return SchemaChange.EQUAL
