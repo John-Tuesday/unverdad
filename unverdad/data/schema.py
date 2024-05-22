@@ -47,7 +47,7 @@ class SchemaType(enum.Enum):
 
 def verify_schema(
     con: sqlite3.Connection,
-    table_name: str,
+    schema_name: str,
     expect_sql: str,
     schema_type: SchemaType,
 ) -> SchemaChange:
@@ -56,7 +56,7 @@ def verify_schema(
         SELECT sql FROM sqlite_schema
         WHERE type = ? AND name = ?
     """
-    row = con.execute(sql_statement, [schema_type.value, table_name]).fetchone()
+    row = con.execute(sql_statement, [schema_type.value, schema_name]).fetchone()
     if row is None:
         return SchemaChange.NONEXISTENT
     actual_sql = row["sql"].casefold().split()
