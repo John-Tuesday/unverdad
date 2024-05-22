@@ -5,11 +5,9 @@ Module level functions are for manipulating the table.
 
 import dataclasses
 import pathlib
-import sqlite3
 import uuid
 from typing import Optional
 
-from unverdad import errors
 from unverdad.data import schema
 
 TABLE_NAME = "game"
@@ -60,16 +58,13 @@ def create_table(con):
     """
     with con:
         sql = _create_table_str()
-        result = schema.verify_schema(
+        schema.verify_schema(
             con=con,
             schema_name=TABLE_NAME,
             expect_sql=sql,
             schema_type=schema.SchemaType.TABLE,
+            strict=True,
         )
-        if result is schema.SchemaChange.DIFF:
-            raise errors.UnverdadError(
-                "game table schema is different thatn expected. Data migration maybe required."
-            ) from sqlite3.IntegrityError()
         con.execute(sql)
 
 

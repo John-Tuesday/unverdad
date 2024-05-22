@@ -3,6 +3,8 @@ import pathlib
 import sqlite3
 import uuid
 
+from unverdad import errors
+
 sqlite3.register_converter("bool", lambda b: False if int(b) == 0 else True)
 sqlite3.register_adapter(bool, lambda b: 1 if b else 0)
 sqlite3.register_converter("path", lambda b: pathlib.Path(b.decode()))
@@ -50,6 +52,7 @@ def verify_schema(
     schema_name: str,
     expect_sql: str,
     schema_type: SchemaType,
+    strict: bool = False,
 ) -> SchemaChange:
     """Compare loaded schema word by word with expected (after casefolding each)."""
     sql_statement = """
@@ -60,6 +63,15 @@ def verify_schema(
     if row is None:
         return SchemaChange.NONEXISTENT
     actual_sql = row["sql"].casefold().split()
-    if actual_sql == expect_sql.casefold().split():
+    expect_words = expect_sql.casefold().split()
+    end_i = expect_words.index(schema_name.casefold())
+    match expect_words[0:end_i]:
+        case [*lhs, "if", "not", "exists"]:
+            expect_words = [*lhs] + expect_words[end_i:]
+    if actual_sql != expect_words:
+        if strict:
+            msg = f"Expected {schema_type.value} schema '{schema_name}' but found a different value."
+            msg = f"{msg}\n\nExpected:\n{expect_sql}\n\nActual:\n{row["sql"]}"
+            raise errors.UnverdadError(msg) from sqlite3.IntegrityError()
         return SchemaChange.DIFF
     return SchemaChange.EQUAL
