@@ -5,7 +5,7 @@ import logging
 import pathlib
 import uuid
 
-from unverdad.data import database, schema, tables
+from unverdad.data import database, defaults, schema, tables
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +14,11 @@ def attach(subparsers):
     parser = subparsers.add_parser(
         "import",
         help="import mods",
+    )
+    parser.add_argument(
+        "--default",
+        help="install all default values",
+        action="store_true",
     )
     parser.add_argument(
         "--refresh",
@@ -75,9 +80,12 @@ def __auto_add_mods(
 
 def hook(args):
     conf = args.config
-    if args.refresh:
+    con = database.get_db()
+    if args.default:
+        logger.info("reinstall defaults")
+        defaults.insert_defaults(con)
+    elif args.refresh:
         logger.info(f"refresh metadata")
-        con = database.get_db()
         with con:
             tables.mod.delete_all(con)
             mods_dir = conf.mods_dir.expanduser().resolve()
