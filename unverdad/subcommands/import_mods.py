@@ -5,7 +5,7 @@ import logging
 import pathlib
 import uuid
 
-from unverdad.data import database, tables
+from unverdad.data import database, schema, tables
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ def __auto_add_mods(
         if not sig_path.is_file():
             report.add_error(ImportError.MISSING_SIG)
             continue
-        mod_id = database._new_uuid()
+        mod_id = schema.new_uuid()
         mod_name = pak_path.stem
         mod_entity = tables.mod.ModEntity(
             mod_id=mod_id,
@@ -59,7 +59,7 @@ def __auto_add_mods(
             name=mod_name,
         )
         pak_entity = tables.pak.PakEntity(
-            pak_id=database._new_uuid(),
+            pak_id=schema.new_uuid(),
             mod_id=mod_id,
             pak_path=pak_path.relative_to(root_dir),
             sig_path=sig_path.relative_to(root_dir),
@@ -84,7 +84,7 @@ def hook(args):
             __auto_add_mods(
                 con=con,
                 dir=mods_dir,
-                game_id=database._new_uuid(),
+                game_id=schema.new_uuid(),
                 root_dir=mods_dir,
             )
         print("[mod]")
