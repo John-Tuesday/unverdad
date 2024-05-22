@@ -8,6 +8,8 @@ import pathlib
 import uuid
 from typing import Optional
 
+from unverdad.data import schema
+
 TABLE_NAME = "game"
 
 
@@ -36,14 +38,8 @@ class GameEntity:
         return dataclasses.asdict(self)
 
 
-def create_table(con):
-    """Create table if it doesn't exist yet.
-
-    This function does not check if the schema is as expected.
-    """
-    with con:
-        con.execute(
-            """
+def _create_table_str() -> str:
+    return """
         CREATE TABLE IF NOT EXISTS game (
             game_id uuid NOT NULL PRIMARY KEY,
             gb_game_id TEXT,
@@ -53,7 +49,26 @@ def create_table(con):
             mods_home_relative_path path NOT NULL
         )
         """
+
+
+def create_table(con):
+    """Create table if it doesn't exist yet.
+
+    This function does not check if the schema is as expected.
+    """
+    with con:
+        sql = _create_table_str()
+        result = schema.verify_schema(
+            con=con,
+            table_name=TABLE_NAME,
+            expect_sql=sql,
+            schema_type=schema.SchemaType.TABLE,
         )
+        if result is not schema.SchemaChange.DIFF:
+            raise Exception(
+                "Table already exists and is different. Data migration is required."
+            )
+        con.execute(sql)
 
 
 def insert_one(con, data: GameEntity):
