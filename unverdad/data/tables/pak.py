@@ -88,7 +88,11 @@ CREATE TABLE IF NOT EXISTS pak (
     pak_id uuid NOT NULL PRIMARY KEY,
     mod_id uuid NOT NULL,
     pak_path path NOT NULL,
-    sig_path path NOT NULL
+    sig_path path NOT NULL,
+    FOREIGN KEY (mod_id)
+    REFERENCES mod (mod_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 )
         """
         )
