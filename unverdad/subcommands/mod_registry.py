@@ -1,6 +1,7 @@
 """Subcommand for imported mods.
 """
 
+import argparse
 import logging
 import sqlite3
 import uuid
@@ -13,7 +14,19 @@ logger = logging.getLogger(__name__)
 
 def attach(subparsers):
     parser = subparsers.add_parser(
-        "mod-registry", help="interact with imported, but not installed mods."
+        "mod-registry",
+        help="interact with imported, but not installed mods.",
+    )
+    game_opt = parser.add_argument_group(title="game")
+    game_opt = game_opt.add_mutually_exclusive_group()
+    game_opt.add_argument(
+        "--game-id",
+        help="Only include results for a particular game given its ID",
+        type=uuid.UUID,
+    )
+    game_opt.add_argument(
+        "--game-name",
+        help="Only include results for a particular game given its NAME",
     )
     enabled_group = parser.add_mutually_exclusive_group()
     enabled_group.add_argument(
@@ -42,17 +55,6 @@ def attach(subparsers):
         action="append",
         dest="mod_names",
         default=[],
-    )
-    parser.add_argument(
-        "--game-id",
-        help="Only include results for a particular game given its ID",
-        action="store",
-        type=uuid.UUID,
-    )
-    parser.add_argument(
-        "--game-name",
-        help="Only include results for a particular game given its NAME",
-        action="store",
     )
     return parser
 
@@ -100,11 +102,11 @@ def hook(args):
         or_conds._add_param(column_name="mod_id", column_value=mod_id)
     for mod_name in args.mod_names:
         or_conds._add_param(column_name="name", column_value=mod_name)
+    con = database.get_db()
     if args.game_id:
         and_conds._add_param(column_name="game_id", column_value=args.game_id)
-    if args.game_name:
-        db = database.get_db()
-        for game_row in db.execute(
+    elif args.game_name:
+        for game_row in con.execute(
             "SELECT * FROM game WHERE name = :name", {"name": args.game_name}
         ):
             game_entity = tables.game.GameEntity(**game_row)
@@ -119,12 +121,12 @@ def hook(args):
         enable = False
     if enable is not None:
         __on_set(
-            con=database.get_db(),
+            con=con,
             cond=conditions,
             enabled=enable,
         )
     __on_show(
         conf=args.config,
-        con=database.get_db(),
+        con=con,
         cond=conditions,
     )
