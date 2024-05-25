@@ -108,7 +108,7 @@ def hook(args) -> None:
         if not destination.is_dir():
             logger.error(f"Game path offset is not a valid directory")
             return
-        destination = (destination / mod.mods_home_relative_path).resolve()
+        destination = mod.install_path.resolve()
         if args.dry:
             logger.info(f"DRY: mkdir -p '{destination}'")
         else:

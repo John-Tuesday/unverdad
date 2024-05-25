@@ -16,6 +16,7 @@ class ModView:
     game_path_offset: pathlib.Path
     mods_home_relative_path: pathlib.Path
     mod_path: pathlib.Path
+    install_path: pathlib.Path
 
     VIEW_NAME: ClassVar[str] = "v_mod"
 
@@ -35,7 +36,8 @@ class ModView:
                 game.game_path,
                 game.game_path_offset,
                 game.mods_home_relative_path,
-                CONCAT_WS('/', game.name, mod.name) AS "mod_path [path]"
+                CONCAT_WS('/', game.name, mod.name) AS "mod_path [path]",
+                CONCAT_WS('/', game.game_path, game.game_path_offset, game.mods_home_relative_path, mod.name) AS "install_path [path]"
             FROM mod
             INNER JOIN game USING (game_id)
             WHERE
