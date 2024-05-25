@@ -1,8 +1,5 @@
-import logging
 import os
 import pathlib
-
-logger = logging.getLogger(__name__)
 
 APP_NAME = "unverdad"
 __version__ = "0.0.0"
