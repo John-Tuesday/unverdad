@@ -62,7 +62,7 @@ def hook(args) -> None:
                 f"skipping mod '{mod.mod_name}' because game path is not defined for game '{mod.game_name}' [{mod.game_id}]"
             )
             continue
-        destination = (mod.game_path / mod.game_path_offset).expanduser()
+        destination = (mod.game_path / mod.game_path_offset).expanduser().resolve()
         if not destination.is_dir():
             logger.error(f"Game path offset is not a valid directory")
             continue
@@ -71,13 +71,12 @@ def hook(args) -> None:
             logger.info(f"DRY: mkdir -p '{destination}'")
         else:
             destination.mkdir(parents=True, exist_ok=True)
-        if not destination.is_dir():
-            logger.error(f"{destination} destination is not a valid directory")
-            continue
         mod_files = []
-        for pak_row in db.execute(f"SELECT * FROM pak WHERE mod_id = ?", [mod.mod_id]):
-            pak = tables.pak.PakEntity(**pak_row)
-            path = args.config.mods_dir.expanduser() / pak.pak_path
+        for pak_row in db.execute(
+            f"SELECT * FROM v_pak WHERE mod_id = ?", [mod.mod_id]
+        ):
+            pak = views.PakView(**pak_row)
+            path = (args.config.mods_dir / pak.pak_path).expanduser().resolve()
             if not path.is_file():
                 logger.error(
                     f"skipping mod '{mod.mod_name}' because '{path}' is not a valid file"
@@ -85,7 +84,7 @@ def hook(args) -> None:
                 mod_files = []
                 break
             mod_files.append(path)
-            path = args.config.mods_dir.expanduser() / pak.sig_path
+            path = (args.config.mods_dir / pak.sig_path).expanduser().resolve()
             if not path.is_file():
                 logger.error(
                     f"skipping mod '{mod.mod_name}' because '{path}' is not a valid file"
