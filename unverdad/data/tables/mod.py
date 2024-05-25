@@ -5,9 +5,11 @@ Module level functions are for manipulating the table.
 """
 
 import dataclasses
-import functools
+import sqlite3
 import uuid
 from typing import Optional
+
+from unverdad.data import schema
 
 TABLE_NAME = "mod"
 
@@ -31,14 +33,8 @@ class ModEntity:
         return dataclasses.asdict(self)
 
 
-def create_table(con):
-    """Create mod table if it doesn't already exist.
-
-    This function does not check if the table schema matches wat is expected.
-    """
-    with con:
-        con.execute(
-            """
+def _create_table_str() -> str:
+    return """
 CREATE TABLE IF NOT EXISTS mod (
     mod_id uuid NOT NULL PRIMARY KEY,
     gb_mod_id,
@@ -51,28 +47,43 @@ CREATE TABLE IF NOT EXISTS mod (
         ON DELETE CASCADE
 )
         """
+
+
+def create_table(con: sqlite3.Connection):
+    """Create mod table if it doesn't already exist.
+
+    This function does not check if the table schema matches wat is expected.
+    """
+    with con:
+        sql = _create_table_str()
+        schema.verify_schema(
+            con=con,
+            schema_name=TABLE_NAME,
+            expect_sql=sql,
+            schema_type=schema.SchemaType.TABLE,
+            strict=True,
         )
+        con.execute(sql)
 
 
-def insert_many(con, data: list[ModEntity]):
+def insert_many(con: sqlite3.Connection, data: list[ModEntity]):
     """Insert each of data into mod table.
 
     Args:
         con: Database connection or cursor
         data: List of items to be inserted into table
     """
-    d = [x._params() for x in data]
     with con:
         con.executemany(
             """
 INSERT INTO mod (mod_id, gb_mod_id, game_id, name, enabled)
 VALUES (:mod_id, :gb_mod_id, :game_id, :name, :enabled)
         """,
-            d,
+            [dataclasses.asdict(x) for x in data],
         )
 
 
-def replace_many(con, data: list[ModEntity]):
+def replace_many(con: sqlite3.Connection, data: list[ModEntity]):
     with con:
         con.execute(
             """
@@ -89,7 +100,7 @@ def replace_many(con, data: list[ModEntity]):
         )
 
 
-def delete_many(con, ids: list[uuid.UUID]):
+def delete_many(con: sqlite3.Connection, ids: list[uuid.UUID]):
     """Delete each row whose mod_id is in the supplied ids."""
     d = [{"mod_id": x} for x in ids]
     with con:
@@ -102,7 +113,7 @@ WHERE mod_id = :mod_id
         )
 
 
-def delete_all(con):
+def delete_all(con: sqlite3.Connection):
     """Delete all rows of mod table."""
     with con:
         con.execute("DELETE FROM mod")

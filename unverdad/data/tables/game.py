@@ -5,6 +5,7 @@ Module level functions are for manipulating the table.
 
 import dataclasses
 import pathlib
+import sqlite3
 import uuid
 from typing import Optional
 
@@ -34,9 +35,6 @@ class GameEntity:
     gb_game_id: Optional[str] = None
     game_path: Optional[pathlib.Path] = None
 
-    def _params(self):
-        return dataclasses.asdict(self)
-
 
 def _create_table_str() -> str:
     return """
@@ -51,7 +49,7 @@ def _create_table_str() -> str:
         """
 
 
-def create_table(con):
+def create_table(con: sqlite3.Connection):
     """Create table if it doesn't exist yet.
 
     This function does not check if the schema is as expected.
@@ -68,7 +66,7 @@ def create_table(con):
         con.execute(sql)
 
 
-def insert_one(con, data: GameEntity):
+def insert_one(con: sqlite3.Connection, data: GameEntity):
     """Insert a single row into the table."""
     with con:
         con.execute(
@@ -76,11 +74,11 @@ def insert_one(con, data: GameEntity):
         INSERT INTO game (game_id, gb_game_id, name, mods_home_relative_path, game_path, game_path_offset)
         VALUES (:game_id, :gb_game_id, :name, :mods_home_relative_path, :game_path, :game_path_offset)
         """,
-            data._params(),
+            dataclasses.asdict(data),
         )
 
 
-def delete_many(con, ids: list[uuid.UUID]):
+def delete_many(con: sqlite3.Connection, ids: list[uuid.UUID]):
     """Delete each row whose game_id is in ids."""
     with con:
         con.executemany(
@@ -92,7 +90,7 @@ def delete_many(con, ids: list[uuid.UUID]):
         )
 
 
-def delete_all(con):
+def delete_all(con: sqlite3.Connection):
     """Delete all rows in table."""
     with con:
         con.execute("""DELETE FROM game""")
