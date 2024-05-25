@@ -11,6 +11,20 @@ from unverdad.data import builders, database, tables, views
 
 def attach(subparsers) -> argparse.ArgumentParser:
     parser = subparsers.add_parser("install", help="install all mods")
+    game_opt = parser.add_argument_group(
+        title="game",
+        description="choose the game in which to install the mods",
+    )
+    game_opt = game_opt.add_mutually_exclusive_group()
+    game_opt.add_argument(
+        "--game-id",
+        help="internal id of the game",
+        type=uuid.UUID,
+    )
+    game_opt.add_argument(
+        "--game-name",
+        help="name of the game",
+    )
     parser.add_argument(
         "--dry",
         help="do not run any commands; instead, print what would have been run.",
@@ -39,11 +53,25 @@ def hook(args) -> None:
         combine_operator=builders.LogicalOperator.AND
     )
     game_cond = conditions.add_subfilter(combine_operator=builders.LogicalOperator.AND)
-    game_cond._add_param(
-        column_name="game_path",
-        column_value=None,
-        operator=builders.CompareOperator.NOT_EQUAL,
-    )
+    if args.game_id:
+        game_cond._add_param(
+            column_name="game_id",
+            column_value=args.game_id,
+        )
+    elif args.game_name:
+        game_cond._add_param(
+            column_name="game_name",
+            column_value=args.game_name.replace("_", r"\_")
+            .replace("%", r"\%")
+            .replace("\\", "\\\\"),
+            operator=builders.CompareOperator.LIKE,
+        )
+    else:
+        game_cond._add_param(
+            column_name="game_name",
+            column_value="Guilty Gear Strive",
+            operator=builders.CompareOperator.LIKE,
+        )
     mod_conds = conditions.add_subfilter(combine_operator=builders.LogicalOperator.OR)
     if not args.allow_disabled:
         cond = conditions.add_subfilter(combine_operator=builders.LogicalOperator.AND)
