@@ -20,6 +20,7 @@ class CompareOperator(enum.Enum):
     MORE_THAN = ">"
     LESS_THAN_OR_EQUAL = "<="
     MORE_THAN_OR_EQUAL = ">="
+    LIKE = "LIKE"
 
 
 class ParamGenerator(typing.Protocol):
@@ -205,6 +206,8 @@ class ConditionBuilderNode(ConditionBuilder):
         else:
             param_name = self.__param_generator(column_name)
             self.__output.write(f"{op} :{param_name}")
+            if operator is CompareOperator.LIKE:
+                self.__output.write(r" ESCAPE '\'")
             self.__params[param_name] = column_value
 
 
