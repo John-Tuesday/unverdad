@@ -41,7 +41,8 @@ def attach(subparsers) -> argparse.ArgumentParser:
     parser.add_argument(
         "--allow-disabled",
         help="do not automatically filter disabled mods",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
+        default=False,
     )
     return parser
 
