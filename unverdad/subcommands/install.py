@@ -12,7 +12,7 @@ from unverdad.data import builders, database, tables, views
 def attach(subparsers) -> argparse.ArgumentParser:
     parser = subparsers.add_parser("install", help="install all mods")
     parser.add_argument(
-        "--dry-run",
+        "--dry",
         help="do not run any commands; instead, print what would have been run.",
         action="store_true",
     )
@@ -67,7 +67,7 @@ def hook(args) -> None:
             logger.error(f"Game path offset is not a valid directory")
             continue
         destination = (destination / mod.mods_home_relative_path).resolve()
-        if args.dry_run:
+        if args.dry:
             logger.info(f"DRY: mkdir -p '{destination}'")
         else:
             destination.mkdir(parents=True, exist_ok=True)
@@ -96,7 +96,7 @@ def hook(args) -> None:
         for path in mod_files:
             path = args.config.mods_dir.expanduser() / path
             cmd = ["cp", "--verbose", path, destination]
-            if args.dry_run:
+            if args.dry:
                 print(f"DRY: {cmd}")
                 continue
             logger.debug(f"command: {cmd}")
