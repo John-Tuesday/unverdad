@@ -3,6 +3,7 @@
 
 import argparse
 import logging
+import pathlib
 import subprocess
 import uuid
 
@@ -47,6 +48,23 @@ def attach(subparsers) -> argparse.ArgumentParser:
     return parser
 
 
+def __copy_files(
+    files: list[pathlib.Path],
+    dir: pathlib.Path,
+    dry: bool = False,
+):
+    cmd = ["cp", *files, dir]
+    if dry:
+        print(*[f"'{x}'" if isinstance(x, pathlib.Path) else f"{x}" for x in cmd])
+        return
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+    )
+    result.check_returncode()
+
+
 def hook(args) -> None:
     logger = logging.getLogger(__name__)
     logger.info("install mods")
@@ -73,10 +91,10 @@ def hook(args) -> None:
             column_value="Guilty Gear Strive",
             operator=builders.CompareOperator.LIKE,
         )
-    mod_conds = conditions.add_subfilter(combine_operator=builders.LogicalOperator.OR)
     if not args.allow_disabled:
         cond = conditions.add_subfilter(combine_operator=builders.LogicalOperator.AND)
         cond._add_param(column_name="enabled", column_value=True)
+    mod_conds = conditions.add_subfilter(combine_operator=builders.LogicalOperator.OR)
     for mod_id in args.mod_ids:
         mod_conds._add_param(column_name="mod_id", column_value=mod_id)
     db = database.get_db()
@@ -86,15 +104,10 @@ def hook(args) -> None:
     logger.debug(f"{sql_statement=!s}")
     for mod_row in db.execute(sql_statement, conditions.params()):
         mod = views.ModView(**mod_row)
-        if mod.game_path is None:
-            logger.error(
-                f"skipping mod '{mod.mod_name}' because game path is not defined for game '{mod.game_name}' [{mod.game_id}]"
-            )
-            continue
         destination = (mod.game_path / mod.game_path_offset).expanduser().resolve()
         if not destination.is_dir():
             logger.error(f"Game path offset is not a valid directory")
-            continue
+            return
         destination = (destination / mod.mods_home_relative_path).resolve()
         if args.dry:
             logger.info(f"DRY: mkdir -p '{destination}'")
@@ -105,34 +118,13 @@ def hook(args) -> None:
             f"SELECT * FROM v_pak WHERE mod_id = ?", [mod.mod_id]
         ):
             pak = views.PakView(**pak_row)
-            path = (args.config.mods_dir / pak.pak_path).expanduser().resolve()
-            if not path.is_file():
-                logger.error(
-                    f"skipping mod '{mod.mod_name}' because '{path}' is not a valid file"
-                )
+            pak_path = (args.config.mods_dir / pak.pak_path).expanduser().resolve()
+            sig_path = (args.config.mods_dir / pak.sig_path).expanduser().resolve()
+            if not pak_path.is_file() or not sig_path.is_file():
+                logger.error(f"'{pak_path}' and/or '{sig_path}' are not valid files")
                 mod_files = []
                 break
-            mod_files.append(path)
-            path = (args.config.mods_dir / pak.sig_path).expanduser().resolve()
-            if not path.is_file():
-                logger.error(
-                    f"skipping mod '{mod.mod_name}' because '{path}' is not a valid file"
-                )
-                mod_files = []
-                break
-            mod_files.append(path)
+            mod_files.append(pak_path)
+            mod_files.append(sig_path)
         logger.info(f"installing mod '{mod.mod_name}' ({len(mod_files)} files)...")
-        for path in mod_files:
-            path = args.config.mods_dir.expanduser() / path
-            cmd = ["cp", "--verbose", path, destination]
-            if args.dry:
-                print(f"DRY: {cmd}")
-                continue
-            logger.debug(f"command: {cmd}")
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-            )
-            logger.debug(result.stdout)
-            result.check_returncode()
+        __copy_files(files=mod_files, dir=destination, dry=args.dry)
