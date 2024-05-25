@@ -71,7 +71,7 @@ def print_table(con, table_name: str):
 
 
 def print_all(con: sqlite3.Connection):
-    for t in [x.TABLE_NAME for x in tables.as_list()] + ["v_mod"]:
+    for t in [x.TABLE_NAME for x in tables.as_list()] + ["v_mod", "v_pak"]:
         print_table(con, t)
         print("")
     print("---===---===---\n")

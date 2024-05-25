@@ -11,7 +11,7 @@ __db: sqlite3.Connection | None = None
 def __connect(
     db: pathlib.Path | None,
     autocommit: bool = False,
-    detect_types: int = sqlite3.PARSE_DECLTYPES,
+    detect_types: int = sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
     **kwargs,
 ) -> sqlite3.Connection:
     """Connect and initialize database.
