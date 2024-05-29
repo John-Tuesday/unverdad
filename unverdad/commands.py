@@ -21,7 +21,7 @@ def parse_args(
         prog=config.APP_NAME,
         description="manage mods for Guilty Gear Strive",
     )
-    parser.set_defaults(out_lvl=logging.INFO)
+    parser.set_defaults(logging_level=logging.INFO)
     verbosity_group = parser.add_mutually_exclusive_group()
     verbosity_group.add_argument(
         "-v",
@@ -29,7 +29,7 @@ def parse_args(
         help="detailed output",
         action="store_const",
         const=logging.DEBUG,
-        dest="out_lvl",
+        dest="logging_level",
     )
     verbosity_group.add_argument(
         "-q",
@@ -37,7 +37,7 @@ def parse_args(
         help="silent output",
         action="store_const",
         const=logging.ERROR,
-        dest="out_lvl",
+        dest="logging_level",
     )
     subparsers = parser.add_subparsers(
         title="subcommands",
@@ -50,8 +50,9 @@ def parse_args(
     args = parser.parse_args()
 
     # init logger handles
+    root_logger.setLevel(args.logging_level)
     console_h = logging.StreamHandler(sys.stdout)
-    console_h.setLevel(args.out_lvl)
+    console_h.setLevel(args.logging_level)
     console_h.setFormatter(logging.Formatter())
     root_logger.addHandler(console_h)
     file_h = logging.FileHandler(filename=config.LOG_FILE, mode="a")
