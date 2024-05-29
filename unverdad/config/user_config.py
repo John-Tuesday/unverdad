@@ -1,13 +1,14 @@
 import pathlib
 
-from unverdad.config import constants, schema
+import schemaspec
+from unverdad.config import constants
 
 
-def __config_schema() -> schema.Schema:
-    root = schema.Schema(description="config for app")
+def __config_schema() -> schemaspec.Schema:
+    root = schemaspec.Schema(description="config for app")
     root.add_item(
         name="mods_home",
-        possible_values=[schema.SchemaValue.path_schema()],
+        possible_values=[schemaspec.SchemaValue.path_schema()],
         default=constants.DATA_HOME / "mods",
         description="mods import destination.",
     )
@@ -17,13 +18,13 @@ def __config_schema() -> schema.Schema:
     )
     default_game_table.add_item(
         name="name",
-        possible_values=[schema.SchemaValue.str_schema()],
+        possible_values=[schemaspec.SchemaValue.str_schema()],
         default="guilty gear strive",
         description="name of game",
     )
     default_game_table.add_item(
         name="enabled",
-        possible_values=[schema.SchemaValue.bool_schema()],
+        possible_values=[schemaspec.SchemaValue.bool_schema()],
         default=True,
         description="whether or not default_game should be used at all.",
     )
@@ -37,7 +38,7 @@ def __config_schema() -> schema.Schema:
     )
     ggs_table.add_item(
         name="game_path",
-        possible_values=[schema.SchemaValue.path_schema()],
+        possible_values=[schemaspec.SchemaValue.path_schema()],
         default=pathlib.Path("~/.steam/root/steamapps/common/GUILTY GEAR STRIVE/"),
         description="game install path.",
     )
