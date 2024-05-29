@@ -9,7 +9,6 @@ description = "Mod Manager for Guilty Gear Strive"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "requests",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
