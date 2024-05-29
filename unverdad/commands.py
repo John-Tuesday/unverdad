@@ -1,8 +1,6 @@
 import argparse
 import logging
-import subprocess
 import sys
-from typing import override
 
 from unverdad import config
 from unverdad.config import user_config
@@ -13,22 +11,9 @@ from unverdad import subcommands
 from unverdad.subcommands import subcommand
 
 
-class ClearLogSubCmd(subcommand.SubCommand):
-    """Clear log file."""
-
-    @override
-    def attach(self, subparsers) -> argparse.ArgumentParser:
-        p = subparsers.add_parser("clear-log", help="clear log and exit")
-        p.set_defaults(log_mode="w", hook=lambda _: logger.info("log cleared"))
-        return p
-
-
 def parse_args(
     root_logger: logging.Logger = logging.getLogger(),
-    subcommands: list[subcommand.SubCommand] = [
-        ClearLogSubCmd(),
-        *subcommands.as_list(),
-    ],
+    subcommands: list[subcommand.SubCommand] = subcommands.as_list(),
 ):
     """Parse args to configure and perform user chosen actions.
 
@@ -40,7 +25,7 @@ def parse_args(
         prog=config.APP_NAME,
         description="manage mods for Guilty Gear Strive",
     )
-    parser.set_defaults(log_mode="a", out_lvl=logging.INFO)
+    parser.set_defaults(out_lvl=logging.INFO)
     verbosity_group = parser.add_mutually_exclusive_group()
     verbosity_group.add_argument(
         "-v",
@@ -73,7 +58,7 @@ def parse_args(
     console_h.setLevel(args.out_lvl)
     console_h.setFormatter(logging.Formatter())
     root_logger.addHandler(console_h)
-    file_h = logging.FileHandler(filename=config.LOG_FILE, mode=args.log_mode)
+    file_h = logging.FileHandler(filename=config.LOG_FILE, mode="a")
     file_h.setLevel(logging.DEBUG)
     file_h.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s"))
     root_logger.addHandler(file_h)
