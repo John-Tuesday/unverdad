@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from unverdad.config import user_config
+from unverdad import config
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +34,8 @@ def attach(subparsers) -> argparse.ArgumentParser:
 def hook(args):
     if args.keys:
         logger.info("[config] get by keys")
-        value = user_config.SCHEMA.format_export_keys(args.config, *args.keys)
+        value = config.SCHEMA.format_export_keys(config.SETTINGS, *args.keys)
         print(value)
     elif args.list_all or not args.keys:
         logger.info("[config] list all config options")
-        print(args.config)
+        print(config.SETTINGS)
