@@ -57,6 +57,46 @@ class SchemaValue[T]:
         self.convert_input = convert_input
 
     @staticmethod
+    def export_bool(value: bool) -> str | None:
+        if not isinstance(value, bool):
+            return None
+        return "true" if value else "false"
+
+    @staticmethod
+    def convert_bool(input: BaseType) -> bool | None:
+        if not isinstance(input, bool):
+            return None
+        return input
+
+    @staticmethod
+    def bool_schema() -> "SchemaValue":
+        return SchemaValue(
+            export_doc="true | false",
+            export_value=SchemaValue.export_bool,
+            convert_input=SchemaValue.convert_bool,
+        )
+
+    @staticmethod
+    def export_str(value: str) -> str | None:
+        if not isinstance(value, str):
+            return None
+        return f'"{value}"'
+
+    @staticmethod
+    def convert_str(input: BaseType) -> str | None:
+        if not isinstance(input, str):
+            return None
+        return input
+
+    @staticmethod
+    def str_schema() -> "SchemaValue":
+        return SchemaValue(
+            export_doc='"<string>"',
+            export_value=SchemaValue.export_str,
+            convert_input=SchemaValue.convert_str,
+        )
+
+    @staticmethod
     def export_path(path: pathlib.Path) -> str:
         """Return path surrounded in double-quotes."""
         return f'"{path}"'

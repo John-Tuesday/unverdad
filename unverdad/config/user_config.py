@@ -1,5 +1,4 @@
 import pathlib
-import tomllib
 
 from unverdad.config import constants, schema
 
@@ -11,6 +10,22 @@ def __config_schema() -> schema.Schema:
         possible_values=[schema.SchemaValue.path_schema()],
         default=constants.DATA_HOME / "mods",
         description="mods import destination.",
+    )
+    default_game_table = root.add_subtable(
+        name="default_game",
+        description="table of game settings where each game is all lowercase",
+    )
+    default_game_table.add_item(
+        name="name",
+        possible_values=[schema.SchemaValue.str_schema()],
+        default="guilty gear strive",
+        description="name of game",
+    )
+    default_game_table.add_item(
+        name="enabled",
+        possible_values=[schema.SchemaValue.bool_schema()],
+        default=True,
+        description="whether or not default_game should be used at all.",
     )
     game_table = root.add_subtable(
         name="games",
