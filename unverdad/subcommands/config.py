@@ -28,11 +28,6 @@ def attach(subparsers) -> argparse.ArgumentParser:
         dest="keys",
         metavar="KEY",
     )
-    g.add_argument(
-        "--verify",
-        help="verify config file is valid",
-        action="store_true",
-    )
     return parser
 
 
@@ -45,6 +40,3 @@ def hook(args):
     elif args.list_all:
         logger.info("list all config options")
         logger.info(f"{args.config}")
-    elif args.verify:
-        logger.info("verify config")
-        logger.info("verified ...")
