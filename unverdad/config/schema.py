@@ -23,7 +23,7 @@ class Namespace:
     def __init__(self, formatter: Optional[Callable[[Any], str]] = None):
         self.__formatter = formatter if formatter else lambda x: f"{vars(x)}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__formatter(self)
 
 
@@ -57,7 +57,7 @@ class SchemaValue[T]:
         self.convert_input = convert_input
 
     @staticmethod
-    def export_path(path):
+    def export_path(path: pathlib.Path) -> str:
         """Return path surrounded in double-quotes."""
         return f'"{path}"'
 
@@ -69,7 +69,7 @@ class SchemaValue[T]:
         raise Exception("input type needs to be string")
 
     @staticmethod
-    def path_schema():
+    def path_schema() -> "SchemaValue":
         """Create a new schema value which expects path input/output."""
         return SchemaValue(
             export_doc='"<path>"',
@@ -94,7 +94,7 @@ class _SchemaItem[T]:
     default_value: T
     description: str
 
-    def export_value(self, value: T) -> Optional[str]:
+    def export_value(self, value: T) -> str | None:
         """Convert value to a valid toml-value.
 
         Tries to convert `value` with each possible_values; returns the first
@@ -109,7 +109,7 @@ class _SchemaItem[T]:
                 return v
         return None
 
-    def convert_input(self, input: BaseType) -> Optional[T]:
+    def convert_input(self, input: BaseType) -> T | None:
         """Convert input to an instance of T."""
         for schema_v in self.possible_values:
             v = schema_v.convert_input(input)
@@ -117,12 +117,12 @@ class _SchemaItem[T]:
                 return v
         return None
 
-    def usage_str(self):
+    def usage_str(self) -> str:
         """Return, as a string, the usage help."""
         v = " | ".join([x.export_doc for x in self.possible_values])
         return f"{self.short_name} = {v}"
 
-    def help_str(self, tab: str = "  "):
+    def help_str(self, tab: str = "  ") -> str:
         """Return summary of this value's purpose and usage, and default value."""
         s = f"\n\n{tab}".join(
             [
@@ -153,8 +153,12 @@ class _SchemaTable:
         self.__subtables = {}
 
     def add_item(
-        self, name: str, possible_values: list[SchemaValue], default, description: str
-    ):
+        self,
+        name: str,
+        possible_values: list[SchemaValue],
+        default,
+        description: str,
+    ) -> None:
         """Add schema item"""
         self.__data[name] = _SchemaItem(
             short_name=name,
@@ -163,7 +167,11 @@ class _SchemaTable:
             description=description,
         )
 
-    def add_subtable(self, name: str, description: str):
+    def add_subtable(
+        self,
+        name: str,
+        description: str,
+    ) -> "_SchemaTable":
         """Create a table within this table and return it."""
         table = _SchemaTable(
             full_name=f"{self.__full_name}.{name}" if self.__full_name else f"{name}",
@@ -185,7 +193,13 @@ class _SchemaTable:
 
     def parse_data[
         T
-    ](self, data, namespace: Optional[T | Namespace] = None) -> T | Namespace:
+    ](
+        self,
+        data: dict[str, BaseType],
+        namespace: Optional[T | Namespace] = None,
+    ) -> (
+        T | Namespace
+    ):
         """ "Convert data to objects and assign them as attributes of namespace.
 
         Args:
@@ -220,7 +234,12 @@ class _SchemaTable:
             raise Exception(f"Unexpected keys")
         return namespace
 
-    def format_export_keys(self, namespace, *keys, use_fullname: bool = False) -> str:
+    def format_export_keys(
+        self,
+        namespace: Any,
+        *keys: str,
+        use_fullname: bool = False,
+    ) -> str:
         """Format namespace attributes given by keys according to schema.
 
         Only supports shallow keys ... for now.
@@ -247,7 +266,7 @@ class _SchemaTable:
         tables.append("\n".join(vals))
         return "\n\n".join(tables)
 
-    def format_export(self, namespace) -> str:
+    def format_export(self, namespace: Any) -> str:
         """Format namespace according to schema.
 
         Keys in this must match with namespace, but extra attributes or keys in
