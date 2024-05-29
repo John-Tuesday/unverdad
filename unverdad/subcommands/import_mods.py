@@ -8,6 +8,7 @@ import subprocess
 import uuid
 from typing import Optional
 
+from unverdad import config
 from unverdad.data import database, schema, tables
 
 logger = logging.getLogger(__name__)
@@ -137,7 +138,7 @@ def hook(args):
     if mod_name is None:
         logger.error(f"mod name could not be determined")
         return
-    parent_dir = conf.mods_dir / game_name / mod_name
+    parent_dir = config.SETTINGS.mods_home / game_name / mod_name
     parent_dir = parent_dir.expanduser().resolve()
     if args.dry:
         print(f"mkdir -p {parent_dir}")

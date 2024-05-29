@@ -7,6 +7,7 @@ import pathlib
 import subprocess
 import uuid
 
+from unverdad import config
 from unverdad.data import builders, database, tables, views
 
 
@@ -85,10 +86,10 @@ def hook(args) -> None:
             .replace("\\", "\\\\"),
             operator=builders.CompareOperator.LIKE,
         )
-    else:
+    elif config.SETTINGS.default_game.enabled:
         game_cond._add_param(
             column_name="game_name",
-            column_value="Guilty Gear Strive",
+            column_value=config.SETTINGS.default_game.name,
             operator=builders.CompareOperator.LIKE,
         )
     if not args.allow_disabled:
@@ -118,8 +119,8 @@ def hook(args) -> None:
             f"SELECT * FROM v_pak WHERE mod_id = ?", [mod.mod_id]
         ):
             pak = views.PakView(**pak_row)
-            pak_path = (args.config.mods_dir / pak.pak_path).expanduser().resolve()
-            sig_path = (args.config.mods_dir / pak.sig_path).expanduser().resolve()
+            pak_path = (config.SETTINGS.mods_home / pak.pak_path).expanduser().resolve()
+            sig_path = (config.SETTINGS.mods_home / pak.sig_path).expanduser().resolve()
             if not pak_path.is_file() or not sig_path.is_file():
                 logger.error(f"'{pak_path}' and/or '{sig_path}' are not valid files")
                 mod_files = []
