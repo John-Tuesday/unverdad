@@ -275,11 +275,16 @@ class Schema(_SchemaTable):
 
     def load_toml[
         T
-    ](self, filepath: pathlib.Path, namespace: Optional[T | Namespace] = None) -> (
+    ](
+        self,
+        filepath: pathlib.Path,
+        namespace: Optional[T | Namespace] = None,
+    ) -> (
         T | Namespace
     ):
         """Load filepath as toml and send output to parse_data()."""
         with open(filepath, "rb") as f:
             data = tomllib.load(f)
-        namespace = Namespace(self.format_export)
+        if namespace is None:
+            namespace = Namespace(self.format_export)
         return self.parse_data(data, namespace=namespace)
