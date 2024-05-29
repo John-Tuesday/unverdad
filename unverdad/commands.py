@@ -1,19 +1,15 @@
 import argparse
 import logging
 import sys
+from collections import abc
 
-from unverdad import config
+from unverdad import config, subcommands
 from unverdad.config import user_config
-
-logger = logging.getLogger(__name__)
-
-from unverdad import subcommands
-from unverdad.subcommands import subcommand
 
 
 def parse_args(
     root_logger: logging.Logger = logging.getLogger(),
-    subcommands: list[subcommand.SubCommand] = subcommands.as_list(),
+    subcommands: abc.Iterable[subcommands.SubCommand] = subcommands.as_list(),
 ):
     """Parse args to configure and perform user chosen actions.
 
