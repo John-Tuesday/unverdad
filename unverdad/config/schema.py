@@ -282,25 +282,36 @@ class _SchemaTable:
     ) -> str:
         """Format namespace attributes given by keys according to schema.
 
-        Only supports shallow keys ... for now.
+        Children are seperated with a dot '.' and there is no way to escape it yet.
 
         Returns: A valid toml string representing values of namespace at keys.
         """
+        if not keys:
+            return self.format_export(namespace=namespace)
         vals = [f"[{self.__full_name}]"] if use_fullname and self.__full_name else []
         tables = []
         for key in keys:
-            if key in self.__data:
-                schema = self.__data[key]
-                rhs = schema.export_value(getattr(namespace, key))
+            child_keys = key.split(".", maxsplit=1)
+            root_key = child_keys.pop(0)
+            if root_key in self.__data:
+                schema = self.__data[root_key]
+                rhs = schema.export_value(getattr(namespace, root_key))
                 lhs = (
                     f"{self.__full_name}.{schema.short_name}"
                     if use_fullname and self.__full_name
                     else f"{schema.short_name}"
                 )
                 vals.append(f"{lhs} = {rhs}")
-            elif key in self.__subtables:
-                subtable = self.__subtables[key]
-                tables.append(subtable.format_export(namespace))
+            elif root_key in self.__subtables:
+                subtable_schema = self.__subtables[root_key]
+                subtable_ns = getattr(namespace, root_key)
+                tables.append(
+                    subtable_schema.format_export_keys(
+                        subtable_ns,
+                        *child_keys,
+                        use_fullname=use_fullname,
+                    )
+                )
             else:
                 raise Exception("key not found in schema")
         tables.append("\n".join(vals))
