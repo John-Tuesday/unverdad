@@ -1,0 +1,3 @@
+[submodule "schemaspec"]
+	path = schemaspec
+	url = https://github.com/John-Tuesday/schemaspec.git

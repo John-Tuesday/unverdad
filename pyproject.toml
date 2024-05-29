@@ -9,6 +9,7 @@ description = "Mod Manager for Guilty Gear Strive"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "schemaspec @ file:///${PROJECT_ROOT}/schemaspec",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -22,6 +23,9 @@ dynamic = ["version"]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+[tool.pyright]
+extraPaths = [ "schemaspec/" ]
+
 [tool.pdm]
 version = { source="file", path="unverdad/config/constants.py" }
 build.package-dir = "unverdad"
@@ -32,7 +36,9 @@ verify_ssl = true
 name = "pypi"
 
 [tool.pdm.dev-dependencies]
-dev = []
+dev = [
+    "-e file:///${PROJECT_ROOT}/schemaspec",
+]
 
 [tool.pdm.scripts]
 [tool.pdm.scripts.real]
