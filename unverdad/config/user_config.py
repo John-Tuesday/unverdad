@@ -1,14 +1,6 @@
-import logging
 import pathlib
 
 from unverdad.config import constants, schema
-
-logger = logging.getLogger(__name__)
-
-
-def __unresolve_home(path: pathlib.Path) -> pathlib.Path:
-    home = pathlib.Path.home()
-    return "~" / path.relative_to(home)
 
 
 def __config_schema() -> schema.Schema:
@@ -31,7 +23,4 @@ def __config_schema() -> schema.Schema:
 
 
 SCHEMA = __config_schema()
-
-
-def load_config():
-    return SCHEMA.load_toml(constants.CONFIG_FILE)
+SETTINGS = SCHEMA.load_toml(constants.CONFIG_FILE)

@@ -1,7 +1,21 @@
-import os
-import pathlib
+"""Constant app-level values.
+"""
 
 __version__: str = "0.0.0"
+__all__ = [
+    "APP_NAME",
+    "APP_VERSION",
+    "STAGE",
+    "DATA_HOME",
+    "CONFIG_HOME",
+    "STATE_HOME",
+    "LOG_FILE",
+    "CONFIG_FILE",
+    "DB_FILE",
+]
+
+import os
+import pathlib
 
 APP_NAME: str = "unverdad"
 APP_VERSION: str = __version__

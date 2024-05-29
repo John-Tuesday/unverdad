@@ -4,7 +4,6 @@ import sys
 from collections import abc
 
 from unverdad import config, subcommands
-from unverdad.config import user_config
 
 
 def parse_args(
@@ -60,5 +59,5 @@ def parse_args(
     file_h.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s"))
     root_logger.addHandler(file_h)
 
-    args.config = user_config.load_config()
+    args.config = config.SETTINGS
     args.hook(args)
