@@ -10,16 +10,16 @@ def attach(subparsers) -> argparse.ArgumentParser:
     parser = subparsers.add_parser(
         "config",
         help="interact with current config",
-        description="query/set/verify config values",
+        description="query config values",
     )
-    g = parser.add_mutually_exclusive_group()
-    g.add_argument(
+    arg_group = parser.add_mutually_exclusive_group()
+    arg_group.add_argument(
         "-l",
         "--list-all",
         help="list all config key-value pairs",
         action="store_true",
     )
-    g.add_argument(
+    arg_group.add_argument(
         "-g",
         "--get",
         help="get config value from key",
@@ -32,11 +32,10 @@ def attach(subparsers) -> argparse.ArgumentParser:
 
 
 def hook(args):
-    logger.info("config")
     if args.keys:
-        logger.info("get config value by one or more keys")
+        logger.info("[config] get by keys")
         value = user_config.SCHEMA.format_export_keys(args.config, *args.keys)
-        logger.info(value)
-    elif args.list_all:
-        logger.info("list all config options")
-        logger.info(f"{args.config}")
+        print(value)
+    elif args.list_all or not args.keys:
+        logger.info("[config] list all config options")
+        print(args.config)
