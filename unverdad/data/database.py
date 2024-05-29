@@ -37,6 +37,7 @@ def __connect(
     con.execute("PRAGMA foreign_keys = ON")
     con.autocommit = autocommit
     con.row_factory = schema.UnverdadRow
+    schema.init_functions(con)
     tables.init_tables(con)
     views.init_views(con)
     if add_defaults:

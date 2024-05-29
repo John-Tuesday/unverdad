@@ -1,5 +1,6 @@
 import enum
 import pathlib
+import re
 import sqlite3
 import uuid
 
@@ -11,6 +12,19 @@ sqlite3.register_converter("path", lambda b: pathlib.Path(b.decode()))
 sqlite3.register_adapter(pathlib.PosixPath, lambda p: p.as_posix())
 sqlite3.register_converter("uuid", lambda b: uuid.UUID(bytes=b))
 sqlite3.register_adapter(uuid.UUID, lambda p: p.bytes)
+
+
+def match_name(name: str, value: str) -> bool:
+    return re.search(re.sub("[_ ]", "[_ ]", name), value, re.IGNORECASE) is not None
+
+
+def init_functions(con: sqlite3.Connection):
+    con.create_function(
+        name="match_name",
+        narg=2,
+        func=match_name,
+        deterministic=True,
+    )
 
 
 def new_uuid() -> uuid.UUID:
