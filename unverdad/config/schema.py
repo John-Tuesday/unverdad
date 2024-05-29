@@ -314,7 +314,8 @@ class _SchemaTable:
                 )
             else:
                 raise Exception("key not found in schema")
-        tables.append("\n".join(vals))
+        if vals:
+            tables.insert(0, "\n".join(vals))
         return "\n\n".join(tables)
 
     def format_export(self, namespace: Any) -> str:
@@ -326,14 +327,16 @@ class _SchemaTable:
         Returns:
             Convert namespace to a valid toml file.
         """
-        lines = [f"[{self.__full_name}]"] if self.__full_name else []
+        header = f"[{self.__full_name}]\n" if self.__full_name else ""
+        vals = []
         for key, schema in self.__data.items():
             v = schema.export_value(getattr(namespace, key))
-            lines.append(f"{key} = {v}")
+            vals.append(f"{key} = {v}")
+        tables = ["\n".join(vals)] if vals else []
         for key, subtable in self.__subtables.items():
             v = subtable.format_export(getattr(namespace, key))
-            lines.append(v)
-        return "\n".join(lines)
+            tables.append(v)
+        return f"{header}{"\n\n".join(tables)}"
 
 
 class Schema(_SchemaTable):
