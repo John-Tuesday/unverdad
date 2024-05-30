@@ -3,6 +3,8 @@ import io
 import typing
 from typing import Any, Optional, Self, override
 
+from unverdad.data import schema
+
 
 class LogicalOperator(enum.Enum):
     """SQLite logical operators."""
@@ -161,6 +163,31 @@ class ConditionBuilderNode(ConditionBuilder):
     def params(self) -> NamedParams:
         """Returns read-only dict of parameter names and values."""
         return NamedParams(self.__params)
+
+    def _add_param_expr(
+        self,
+        column_name: str,
+        expression: str,
+        param_value: schema.SQLiteAdaptable,
+    ) -> None:
+        """Add parameter and contition to clause.
+
+        Args:
+            column_name: Name of the column, not including a table name nor an alias.
+            expression:
+                String formatted with named placeholders 'column' and 'param' to
+                inject the column and parameter values respectively.
+            param_value: Value to be injected. Sql convertible value.
+        """
+        if not self.is_empty():
+            self.__output.write(self.__seperator)
+        if self.__table_name:
+            column_name = f"{self.__table_name}.{column_name}"
+        param_name = self.__param_generator(column_name)
+        self.__params[param_name] = param_value
+        self.__output.write(
+            expression.format(param=f":{param_name}", column=column_name)
+        )
 
     def _add_param[
         T
