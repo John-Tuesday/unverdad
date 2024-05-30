@@ -5,12 +5,13 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:5e64ac26f8364503b3c1fa8e3b3076dd2c7403f473dfd19940a4dbb30dcb7575"
+content_hash = "sha256:b1cd19039b525f59f6f106e3799922ad97f07b7e7dba5bf8472be7dc98a7dd70"
 
 [[package]]
 name = "schemaspec"
 version = "0.0.0"
 requires_python = ">=3.12"
+editable = true
 path = "./schemaspec"
 summary = "Transparent config schema spec builder."
-groups = ["default"]
+groups = ["default", "dev"]
