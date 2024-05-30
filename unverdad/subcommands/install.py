@@ -79,18 +79,16 @@ def hook(args) -> None:
             column_value=args.game_id,
         )
     elif args.game_name:
-        game_cond._add_param(
+        game_cond._add_param_expr(
             column_name="game_name",
-            column_value=args.game_name.replace("_", r"\_")
-            .replace("%", r"\%")
-            .replace("\\", "\\\\"),
-            operator=builders.CompareOperator.LIKE,
+            expression="match_name({column}, {param})",
+            param_value=args.game_name,
         )
     elif config.SETTINGS.default_game.enabled:
-        game_cond._add_param(
+        game_cond._add_param_expr(
             column_name="game_name",
-            column_value=config.SETTINGS.default_game.name,
-            operator=builders.CompareOperator.LIKE,
+            expression="match_name({column}, {param})",
+            param_value=config.SETTINGS.default_game.name,
         )
     if not args.allow_disabled:
         cond = conditions.add_subfilter(combine_operator=builders.LogicalOperator.AND)
