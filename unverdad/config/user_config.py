@@ -68,5 +68,8 @@ class SettingsSpec:
     )
 
 
-SCHEMA = schemaspec.schema_from(SettingsSpec)
-SETTINGS = SCHEMA.load_toml(constants.CONFIG_FILE, namespace=SettingsSpec())
+SCHEMA: schemaspec.Schema = schemaspec.schema_from(SettingsSpec)
+SETTINGS: SettingsSpec = SCHEMA.load_toml(
+    constants.CONFIG_FILE,
+    namespace=SettingsSpec(),
+)
