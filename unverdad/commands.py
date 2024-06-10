@@ -42,7 +42,7 @@ def init_logging(
     root_logger.addHandler(file_h)
 
 
-def parse_args(root_logger: Optional[logging.Logger] = None):
+def parse_args(root_logger: Optional[logging.Logger] = None) -> int:
     """Parse args to configure and perform user chosen actions.
 
     Creates, configures, and runs an argparse.ArgumentParser.
@@ -85,7 +85,7 @@ def parse_args(root_logger: Optional[logging.Logger] = None):
     )
     for subcmd in subcommands.as_list():
         p = subcmd.attach(subparsers)
-        p.set_defaults(hook=subcmd.hook)
+        p.set_defaults(hook=subcmd.hook, subparser=p)
     args = parser.parse_args()
     init_logging(
         level=args.logging_level,
@@ -93,3 +93,4 @@ def parse_args(root_logger: Optional[logging.Logger] = None):
         log_file=config.LOG_FILE,
     )
     args.hook(args)
+    return 0
