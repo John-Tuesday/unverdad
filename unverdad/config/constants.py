@@ -5,13 +5,13 @@ __version__ = "0.0.0"
 __all__ = [
     "APP_NAME",
     "APP_VERSION",
-    "STAGE",
-    "DATA_HOME",
-    "CONFIG_HOME",
-    "STATE_HOME",
-    "LOG_FILE",
     "CONFIG_FILE",
+    "CONFIG_HOME",
+    "DATA_HOME",
     "DB_FILE",
+    "LOG_FILE",
+    "STAGE",
+    "STATE_HOME",
 ]
 
 import os
