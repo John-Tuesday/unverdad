@@ -43,10 +43,5 @@ dev = [
 ]
 
 [tool.pdm.scripts]
-[tool.pdm.scripts.real]
-cmd = "python -m unverdad"
-env = { UNVERDAD_STAGE = "real" }
-
-[tool.pdm.scripts.tests]
-cmd = "python -m tests"
-env = { UNVERDAD_STAGE = "test" }
+real = "python -m unverdad"
+tests = { cmd = "python -m tests", env = { UNVERDAD_STAGE = "test" } }
