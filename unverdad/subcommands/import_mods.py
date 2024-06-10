@@ -83,16 +83,24 @@ def __game_id_name(
     con: sqlite3.Connection,
     name: Optional[str] = None,
     game_id: Optional[uuid.UUID] = None,
-) -> tuple[uuid.UUID, str] | None:
+) -> tuple[uuid.UUID, str] | str:
     sql_select = f"SELECT name, game_id FROM game WHERE "
     if game_id:
         sql_select += "game_id = ?"
-    elif name:
-        sql_select += "name LIKE ?"
+    elif name or config.SETTINGS.default_game.enabled:
+        sql_select += "match_name(name, ?)"
     else:
-        raise ValueError()
-    row = con.execute(sql_select, [game_id or name]).fetchone()
-    return row and (row["game_id"], row["name"])
+        return "Specify a game or enable a default game"
+    row = con.execute(
+        sql_select,
+        [game_id or name or config.SETTINGS.default_game.name],
+    ).fetchone()
+    if not row:
+        message = f"Could not find game with"
+        if game_id:
+            return f"{message} id '{game_id}'"
+        return f"{message} name '{name or config.SETTINGS.default_game.name}'"
+    return (row["game_id"], row["name"])
 
 
 def __copy_files(files: list[pathlib.Path], dir: pathlib.Path, dry: bool = False):
@@ -109,19 +117,14 @@ def __copy_files(files: list[pathlib.Path], dir: pathlib.Path, dry: bool = False
 
 
 def hook(args):
-    conf = args.config
     con = database.get_db()
 
-    game_id = __game_id_name(
-        con=con,
-        game_id=args.game_id,
-        name=args.game_name or "Guilty Gear Strive",
-    )
-    if game_id is None:
-        msg = f"No game exists for '{args.game_name}'"
-        logger.error(msg)
-        return
-    game_id, game_name = game_id
+    match __game_id_name(con=con, game_id=args.game_id, name=args.game_name):
+        case (id, name):
+            game_id = id
+            game_name = name
+        case str(msg):
+            return logger.error(msg)
 
     files = args.file or []
     dirs = args.dir or []
@@ -137,8 +140,8 @@ def hook(args):
     elif len(files) > 0:
         mod_name = files[0][0].stem
     if mod_name is None:
-        logger.error(f"mod name could not be determined")
-        return
+        return logger.error(f"mod name could not be determined")
+
     parent_dir = config.SETTINGS.mods_home / game_name / mod_name
     parent_dir = parent_dir.expanduser().resolve()
     if args.dry:
@@ -161,6 +164,8 @@ def hook(args):
     ]
     files = [file for pak in files for file in pak]
     __copy_files(files=files, dir=parent_dir, dry=args.dry)
+    if args.dry:
+        return print(f"import mod {mod} with paks {paks}")
     with con:
         tables.mod.insert_many(con, [mod])
         tables.pak.insert_many(con, paks)
