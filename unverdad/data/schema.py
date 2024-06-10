@@ -9,10 +9,18 @@ from unverdad import errors
 type SQLiteNative = None | int | float | str | bytes
 type SQLiteAdaptable = SQLiteNative | sqlite3.PrepareProtocol | bool | pathlib.Path | uuid.UUID
 
+
+def __adapt_path(path: pathlib.PurePath) -> str:
+    """Adapt any path to sqlite."""
+    return path.as_posix()
+
+
 sqlite3.register_converter("bool", lambda b: False if int(b) == 0 else True)
 sqlite3.register_adapter(bool, lambda b: 1 if b else 0)
 sqlite3.register_converter("path", lambda b: pathlib.Path(b.decode()))
-sqlite3.register_adapter(pathlib.Path, lambda p: p.as_posix())
+sqlite3.register_adapter(pathlib.WindowsPath, __adapt_path)
+sqlite3.register_adapter(pathlib.PosixPath, __adapt_path)
+sqlite3.register_adapter(pathlib.Path, __adapt_path)
 sqlite3.register_converter("uuid", lambda b: uuid.UUID(bytes=b))
 sqlite3.register_adapter(uuid.UUID, lambda p: p.bytes)
 
