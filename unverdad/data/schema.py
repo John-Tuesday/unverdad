@@ -4,7 +4,7 @@ import re
 import sqlite3
 import uuid
 
-from unverdad import errors
+from unverdad import config, errors
 
 type SQLiteNative = None | int | float | str | bytes
 type SQLiteAdaptable = SQLiteNative | sqlite3.PrepareProtocol | bool | pathlib.Path | uuid.UUID
@@ -100,3 +100,16 @@ def verify_schema(
             raise errors.UnverdadError(msg) from sqlite3.IntegrityError()
         return SchemaChange.DIFF
     return SchemaChange.EQUAL
+
+
+def sync_db_config(con: sqlite3.Connection):
+    """Synchronize `config.SETTINGS` with `con`."""
+    gamespec = config.SETTINGS.games.guilty_gear_strive
+    sql = """
+        UPDATE game 
+        SET game_path = :game_path
+        WHERE match_name(name, :name)
+    """
+    params = {"game_path": gamespec.game_path, "name": "guilty gear strive"}
+    with con:
+        con.execute(sql, params)

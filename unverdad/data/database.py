@@ -42,6 +42,7 @@ def __connect(
     views.init_views(con)
     if add_defaults:
         defaults.insert_defaults(con)
+    schema.sync_db_config(con)
     return con
 
 
