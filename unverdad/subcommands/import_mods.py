@@ -8,7 +8,7 @@ import subprocess
 import uuid
 from typing import Optional
 
-from unverdad import config
+from unverdad import config, errors
 from unverdad.data import database, schema, tables
 
 logger = logging.getLogger(__name__)
@@ -122,7 +122,7 @@ def __copy_files(files: list[pathlib.Path], dir: pathlib.Path, dry: bool = False
     result.check_returncode()
 
 
-def hook(args):
+def hook(args) -> errors.UnverdadError | None:
     con = database.get_db()
 
     match __game_id_name(con=con, game_id=args.game_id, name=args.game_name):
@@ -130,7 +130,7 @@ def hook(args):
             game_id = id
             game_name = name
         case str(msg):
-            return logger.error(msg)
+            return errors.UnverdadError(msg)
 
     files = args.file or []
     dirs = args.dir or []
@@ -146,7 +146,7 @@ def hook(args):
     elif len(files) > 0:
         mod_name = files[0][0].stem
     if mod_name is None:
-        return logger.error(f"mod name could not be determined")
+        return errors.UnverdadError(f"mod name could not be determined")
 
     parent_dir = config.SETTINGS.mods_home / game_name / mod_name
     parent_dir = parent_dir.expanduser().resolve()

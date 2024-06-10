@@ -1,6 +1,6 @@
 import argparse
 
-from unverdad import config
+from unverdad import config, errors
 
 
 def attach(subparsers) -> argparse.ArgumentParser:
@@ -39,7 +39,7 @@ def attach(subparsers) -> argparse.ArgumentParser:
     return parser
 
 
-def hook(args):
+def hook(args) -> errors.UnverdadError | None:
     show_help = args.keys is None if args.show_help is None else args.show_help
     print(
         config.SCHEMA.format_export(

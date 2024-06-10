@@ -1,6 +1,8 @@
 import argparse
 from typing import Protocol
 
+from unverdad import errors
+
 
 class SubCommand(Protocol):
     """Factory for ArgumentParsers with a hook for when it's called."""
@@ -9,7 +11,7 @@ class SubCommand(Protocol):
         """Add parser to subparsers, configure, then return the result."""
         ...
 
-    def hook(self, args) -> None:
+    def hook(self, args) -> errors.UnverdadError | None:
         """Perform action.
 
         Called after loading config and initializing logging.

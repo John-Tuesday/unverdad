@@ -6,7 +6,7 @@ import logging
 import sqlite3
 import uuid
 
-from unverdad import config
+from unverdad import config, errors
 from unverdad.data import builders, database, tables
 
 logger = logging.getLogger(__name__)
@@ -90,7 +90,7 @@ def __on_set(
         )
 
 
-def hook(args):
+def hook(args) -> errors.UnverdadError | None:
     """"""
     conditions = builders.ConditionBuilderBranch(
         combine_operator=builders.LogicalOperator.AND,

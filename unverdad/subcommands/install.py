@@ -8,7 +8,7 @@ import sqlite3
 import subprocess
 import uuid
 
-from unverdad import config
+from unverdad import config, errors
 from unverdad.data import builders, database, views
 
 
@@ -79,7 +79,7 @@ def __mod_files(con: sqlite3.Connection, mod_id: uuid.UUID) -> list[pathlib.Path
     return mod_files
 
 
-def hook(args) -> None:
+def hook(args) -> errors.UnverdadError | None:
     logger = logging.getLogger(__name__)
     logger.info("install mods")
     conditions = builders.ConditionBuilderBranch(
@@ -98,7 +98,7 @@ def hook(args) -> None:
             param_value=args.game_name or config.SETTINGS.default_game.name,
         )
     else:
-        return logger.error(
+        args.subparser.error(
             "either enable default_game or use argument --game-id or --game-name"
         )
     mod_conds = conditions.add_subfilter(combine_operator=builders.LogicalOperator.OR)
@@ -108,11 +108,12 @@ def hook(args) -> None:
     db = database.get_db()
     sql_statement = f"SELECT * FROM v_mod\nWHERE {conditions.render()}"
     logger.debug(f"{sql_statement=!s}")
+    result = errors.UnverdadError("Could not find any mods to install")
     for mod_row in db.execute(sql_statement, conditions.params()):
         mod = views.ModView(**mod_row)
         destination = (mod.game_path / mod.game_path_offset).expanduser().resolve()
         if not destination.is_dir():
-            return logger.error(f"'{destination}' is not a valid directory")
+            return errors.UnverdadError(f"'{destination}' is not a valid directory")
         destination = mod.install_path.expanduser().resolve()
         if args.dry:
             print(f"mkdir -p '{destination}'")
@@ -120,8 +121,10 @@ def hook(args) -> None:
             destination.mkdir(parents=True, exist_ok=True)
         match __mod_files(con=db, mod_id=mod.mod_id):
             case str(msg):
-                return logger.error(msg)
+                return errors.UnverdadError(msg)
             case list() as files:
                 mod_files = files
         logger.info(f"installing mod '{mod.mod_name}' ({len(mod_files)} files)...")
         __copy_files(files=mod_files, dir=destination, dry=args.dry)
+        result = None
+    return result

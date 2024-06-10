@@ -4,7 +4,7 @@ import pathlib
 import subprocess
 import uuid
 
-from unverdad import config
+from unverdad import config, errors
 from unverdad.data import database, tables
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ def __remove_dir(dir: pathlib.Path, dry: bool = False):
     result.check_returncode()
 
 
-def hook(args):
+def hook(args) -> errors.UnverdadError | None:
     sql_statement = """SELECT * FROM game WHERE """
     param = {}
     if args.game_id:
@@ -66,14 +66,14 @@ def hook(args):
         sql_statement += "match_name(name, :game_name)"
         param["game_name"] = args.game_name or config.SETTINGS.default_game.name
     else:
-        raise ValueError("specify a game or enable default_game")
+        args.subparser.error("specify a game or enable default_game")
     con = database.get_db()
     game_row = con.execute(sql_statement, param).fetchone()
     if game_row is None:
-        return logger.error("no game found")
+        return errors.UnverdadError("no game found")
     game = tables.game.GameEntity(**game_row)
     if game.game_path is None:
-        return logger.error("game path needs to be set")
+        return errors.UnverdadError("game path needs to be set")
     mods_home = game.game_path / game.game_path_offset / game.mods_home_relative_path
     mods_home = mods_home.expanduser().resolve()
     __remove_dir(mods_home, dry=args.dry)
