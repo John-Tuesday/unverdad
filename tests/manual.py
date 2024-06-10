@@ -3,7 +3,7 @@ from tests.data import fixture_database as fd
 from unverdad.data import database
 
 
-def main():
+def manual_main():
     con = database._reset_db(db_path=None)
     print("IN MEMORY DATABASE")
     fd.insert_samples(con)
@@ -12,4 +12,5 @@ def main():
     fd.print_all(con)
 
 
-main()
+if __name__ == "__main__":
+    manual_main()
