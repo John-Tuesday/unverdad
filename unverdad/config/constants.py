@@ -22,20 +22,20 @@ APP_VERSION: str = __version__
 DATA_HOME = pathlib.Path(
     os.getenv("XDG_DATA_HOME", "~/.local/share"),
     APP_NAME,
-).expanduser()
+)
 CONFIG_HOME = pathlib.Path(
     os.getenv("XDG_CONFIG_HOME", "~/.config"),
     APP_NAME,
-).expanduser()
+)
 STATE_HOME = pathlib.Path(
     os.getenv("XDG_STATE_HOME", "~/.local/state"),
     APP_NAME,
-).expanduser()
+)
 
-LOG_FILE: pathlib.Path = STATE_HOME / "log"
-CONFIG_FILE: pathlib.Path = CONFIG_HOME / "config.toml"
-DB_FILE: pathlib.Path = DATA_HOME / "db"
+LOG_FILE: pathlib.Path = STATE_HOME.expanduser() / "log"
+CONFIG_FILE: pathlib.Path = CONFIG_HOME.expanduser() / "config.toml"
+DB_FILE: pathlib.Path = DATA_HOME.expanduser() / "db"
 
 # Ensure directory homes exist
 for dir in [DATA_HOME, CONFIG_HOME, STATE_HOME]:
-    dir.resolve().mkdir(parents=True, exist_ok=True)
+    dir.expanduser().resolve().mkdir(parents=True, exist_ok=True)
