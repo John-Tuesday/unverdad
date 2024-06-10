@@ -20,12 +20,19 @@ def parse_args(
         prog=config.APP_NAME,
         description="manage mods for Guilty Gear Strive",
     )
-    parser.set_defaults(logging_level=logging.INFO)
+    parser.set_defaults(logging_level=logging.WARNING)
     verbosity_group = parser.add_mutually_exclusive_group()
     verbosity_group.add_argument(
         "-v",
         "--verbose",
         help="detailed output",
+        action="store_const",
+        const=logging.INFO,
+        dest="logging_level",
+    )
+    verbosity_group.add_argument(
+        "--debug",
+        help="extremely detailed output",
         action="store_const",
         const=logging.DEBUG,
         dest="logging_level",
