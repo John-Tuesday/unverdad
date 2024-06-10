@@ -4,7 +4,7 @@ import pathlib
 import sys
 from typing import Optional
 
-from unverdad import config, subcommands
+from unverdad import config, errors, subcommands
 
 
 def mkdir_homes():
@@ -42,7 +42,9 @@ def init_logging(
     root_logger.addHandler(file_h)
 
 
-def parse_args(root_logger: Optional[logging.Logger] = None) -> int:
+def parse_args(
+    root_logger: Optional[logging.Logger] = None,
+) -> errors.UnverdadError | None:
     """Parse args to configure and perform user chosen actions.
 
     Creates, configures, and runs an argparse.ArgumentParser.
@@ -92,5 +94,4 @@ def parse_args(root_logger: Optional[logging.Logger] = None) -> int:
         root_logger=root_logger,
         log_file=config.LOG_FILE,
     )
-    args.hook(args)
-    return 0
+    return args.hook(args)

@@ -5,7 +5,7 @@ from unverdad import commands
 
 def main():
     commands.mkdir_homes()
-    return commands.parse_args()
+    return 0 if commands.parse_args() is None else -1
 
 
 if __name__ == "__main__":
