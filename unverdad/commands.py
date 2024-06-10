@@ -1,7 +1,9 @@
 import argparse
 import logging
+import pathlib
 import sys
 from collections import abc
+from typing import Optional
 
 from unverdad import config, subcommands
 
@@ -12,8 +14,37 @@ def mkdir_homes():
         dir.expanduser().resolve().mkdir(parents=True, exist_ok=True)
 
 
+def init_logging(
+    level: int,
+    root_logger: Optional[logging.Logger] = None,
+    log_file: Optional[pathlib.Path] = None,
+) -> None:
+    """Initialize logging
+
+    :param `level`: Level for `root_logger`.
+    :param `root_logger`: Logger which will be configured; if None, use the root logger.
+    :param `log_file`: Path to file in which to output logs. The file will be created
+        if it does not exist, and its parent is an existing directory.
+    """
+    if root_logger is None:
+        root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+    console_h = logging.StreamHandler(sys.stdout)
+    console_h.setLevel(level)
+    console_h.setFormatter(logging.Formatter())
+    root_logger.addHandler(console_h)
+    if log_file is None:
+        return root_logger.warning(f"Log file is not being used")
+    if not log_file.parent.is_dir() or (log_file.exists() and not log_file.is_file()):
+        return root_logger.warning(f"Log file cannot be created at '{log_file}'")
+    file_h = logging.FileHandler(filename=log_file, mode="a")
+    file_h.setLevel(logging.DEBUG)
+    file_h.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s"))
+    root_logger.addHandler(file_h)
+
+
 def parse_args(
-    root_logger: logging.Logger = logging.getLogger(),
+    root_logger: Optional[logging.Logger] = None,
     subcommands: abc.Iterable[subcommands.SubCommand] = subcommands.as_list(),
 ):
     """Parse args to configure and perform user chosen actions.
@@ -61,16 +92,11 @@ def parse_args(
         p.set_defaults(hook=subcmd.hook)
     args = parser.parse_args()
 
-    # init logger handles
-    root_logger.setLevel(args.logging_level)
-    console_h = logging.StreamHandler(sys.stdout)
-    console_h.setLevel(args.logging_level)
-    console_h.setFormatter(logging.Formatter())
-    root_logger.addHandler(console_h)
-    file_h = logging.FileHandler(filename=config.LOG_FILE, mode="a")
-    file_h.setLevel(logging.DEBUG)
-    file_h.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s"))
-    root_logger.addHandler(file_h)
+    init_logging(
+        level=args.logging_level,
+        root_logger=root_logger,
+        log_file=config.LOG_FILE,
+    )
 
     args.config = config.SETTINGS
     args.hook(args)
