@@ -97,7 +97,7 @@ def hook(args) -> None:
             param_value=args.game_name or config.SETTINGS.default_game.name,
         )
     else:
-        return logger.error("Specify a game or enable a default_game")
+        return logger.error("Specify a game or enable default_game")
     mod_conds = conditions.add_subfilter(combine_operator=builders.LogicalOperator.OR)
     mod_conds._add_param(column_name="enabled", column_value=True)
     for mod_id in args.mod_ids:
