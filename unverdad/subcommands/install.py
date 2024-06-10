@@ -20,7 +20,8 @@ def attach(subparsers) -> argparse.ArgumentParser:
     )
     game_opt = parser.add_argument_group(
         title="game",
-        description="choose the game in which to install the mods",
+        description="choose the game in which to install the mods, "
+        "required if default_game is not enabled.",
     )
     game_opt = game_opt.add_mutually_exclusive_group()
     game_opt.add_argument(
@@ -97,7 +98,9 @@ def hook(args) -> None:
             param_value=args.game_name or config.SETTINGS.default_game.name,
         )
     else:
-        return logger.error("Specify a game or enable default_game")
+        return logger.error(
+            "either enable default_game or use argument --game-id or --game-name"
+        )
     mod_conds = conditions.add_subfilter(combine_operator=builders.LogicalOperator.OR)
     mod_conds._add_param(column_name="enabled", column_value=True)
     for mod_id in args.mod_ids:
@@ -109,7 +112,7 @@ def hook(args) -> None:
         mod = views.ModView(**mod_row)
         destination = (mod.game_path / mod.game_path_offset).expanduser().resolve()
         if not destination.is_dir():
-            return logger.error(f"Game path offset is not a valid directory")
+            return logger.error(f"'{destination}' is not a valid directory")
         destination = mod.install_path.expanduser().resolve()
         if args.dry:
             print(f"mkdir -p '{destination}'")
