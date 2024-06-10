@@ -35,7 +35,3 @@ STATE_HOME = pathlib.Path(
 LOG_FILE: pathlib.Path = STATE_HOME.expanduser() / "log"
 CONFIG_FILE: pathlib.Path = CONFIG_HOME.expanduser() / "config.toml"
 DB_FILE: pathlib.Path = DATA_HOME.expanduser() / "db"
-
-# Ensure directory homes exist
-for dir in [DATA_HOME, CONFIG_HOME, STATE_HOME]:
-    dir.expanduser().resolve().mkdir(parents=True, exist_ok=True)

@@ -6,6 +6,12 @@ from collections import abc
 from unverdad import config, subcommands
 
 
+def mkdir_homes():
+    """Ensure directory homes exist."""
+    for dir in [config.DATA_HOME, config.CONFIG_HOME, config.STATE_HOME]:
+        dir.expanduser().resolve().mkdir(parents=True, exist_ok=True)
+
+
 def parse_args(
     root_logger: logging.Logger = logging.getLogger(),
     subcommands: abc.Iterable[subcommands.SubCommand] = subcommands.as_list(),

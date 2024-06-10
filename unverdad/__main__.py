@@ -4,6 +4,7 @@ from unverdad import commands
 
 
 def main():
+    commands.mkdir_homes()
     return commands.parse_args()
 
 
