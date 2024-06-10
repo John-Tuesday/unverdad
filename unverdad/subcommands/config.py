@@ -1,9 +1,6 @@
 import argparse
-import logging
 
 from unverdad import config
-
-logger = logging.getLogger(__name__)
 
 
 def attach(subparsers) -> argparse.ArgumentParser:
@@ -12,11 +9,22 @@ def attach(subparsers) -> argparse.ArgumentParser:
         help="interact with current config",
         description="query config values",
     )
+    parser.add_argument(
+        "--show-help",
+        help="include documentation comments",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+    )
+    parser.add_argument(
+        "--default",
+        help="use the default config instead of the loaded one",
+        action="store_true",
+    )
     arg_group = parser.add_mutually_exclusive_group()
     arg_group.add_argument(
         "-l",
         "--list-all",
-        help="list all config key-value pairs",
+        help="list all config values",
         action="store_true",
     )
     arg_group.add_argument(
@@ -32,10 +40,11 @@ def attach(subparsers) -> argparse.ArgumentParser:
 
 
 def hook(args):
-    if args.keys:
-        logger.info("[config] get by keys")
-        value = config.SCHEMA.format_export(config.SETTINGS, keys=args.keys)
-        print(value)
-    elif args.list_all or not args.keys:
-        logger.info("[config] list all config options")
-        print(config.SETTINGS)
+    show_help = args.keys is None if args.show_help is None else args.show_help
+    print(
+        config.SCHEMA.format_export(
+            namespace=config.SETTINGS if not args.default else None,
+            keys=args.keys,
+            show_help=show_help,
+        )
+    )

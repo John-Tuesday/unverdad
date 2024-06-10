@@ -54,8 +54,13 @@ class SettingsSpec:
             )
 
         guilty_gear_strive: GameSpec = dataclasses.field(
-            default_factory=GameSpec,
-            metadata=schemaspec.SchemaTableField(
+            default_factory=lambda x=GameSpec: x(
+                game_path=pathlib.Path(
+                    "~/.steam/root/steamapps/common/GUILTY GEAR STRIVE/"
+                )
+            ),
+            metadata=schemaspec.SchemaItemField(
+                possible_values=(schemaspec.schema_from(GameSpec),),
                 description="GUILTY GEAR STRIVE options",
             ).metadata(),
         )
