@@ -2,7 +2,6 @@ import argparse
 import logging
 import pathlib
 import sys
-from collections import abc
 from typing import Optional
 
 from unverdad import config, subcommands
@@ -43,10 +42,7 @@ def init_logging(
     root_logger.addHandler(file_h)
 
 
-def parse_args(
-    root_logger: Optional[logging.Logger] = None,
-    subcommands: abc.Iterable[subcommands.SubCommand] = subcommands.as_list(),
-):
+def parse_args(root_logger: Optional[logging.Logger] = None):
     """Parse args to configure and perform user chosen actions.
 
     Creates, configures, and runs an argparse.ArgumentParser.
@@ -87,7 +83,7 @@ def parse_args(
         description="control mod installation",
         required=True,
     )
-    for subcmd in subcommands:
+    for subcmd in subcommands.as_list():
         p = subcmd.attach(subparsers)
         p.set_defaults(hook=subcmd.hook)
     args = parser.parse_args()
