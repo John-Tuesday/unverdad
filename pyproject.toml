@@ -44,4 +44,4 @@ dev = [
 
 [tool.pdm.scripts]
 real = "python -m unverdad"
-tests = "python -m tests.manual" 
+manual-test = "python -m tests.manual" 
