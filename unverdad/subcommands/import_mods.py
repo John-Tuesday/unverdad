@@ -34,7 +34,8 @@ def _pak_path(path_str: str) -> tuple[pathlib.Path, pathlib.Path]:
 def attach(subparsers):
     parser = subparsers.add_parser(
         "import",
-        help="import mods. if name is unspecified, use the first directory name or first file name (minus the suffix) in that order.",
+        help="import mods",
+        description="import mods. if name is unspecified, use the first directory name or first file name (minus the suffix) in that order.",
     )
     parser.add_argument(
         "--dry",
