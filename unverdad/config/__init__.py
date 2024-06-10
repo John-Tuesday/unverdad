@@ -6,7 +6,6 @@ from unverdad.config.constants import (
     DATA_HOME,
     DB_FILE,
     LOG_FILE,
-    STAGE,
     STATE_HOME,
 )
 from unverdad.config.user_config import SCHEMA, SETTINGS

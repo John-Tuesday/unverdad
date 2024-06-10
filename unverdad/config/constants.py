@@ -10,7 +10,6 @@ __all__ = [
     "DATA_HOME",
     "DB_FILE",
     "LOG_FILE",
-    "STAGE",
     "STATE_HOME",
 ]
 
@@ -19,7 +18,6 @@ import pathlib
 
 APP_NAME: str = "unverdad"
 APP_VERSION: str = __version__
-STAGE: str = "production"
 
 DATA_HOME = pathlib.Path(
     os.getenv("XDG_DATA_HOME", "~/.local/share"),
