@@ -10,7 +10,7 @@ class SettingsSpec:
     mods_home: pathlib.Path = dataclasses.field(
         default=constants.DATA_HOME / "mods",
         metadata=schemaspec.SchemaItemField(
-            possible_values=[schemaspec.PathSchema()],
+            possible_values=(schemaspec.PathAdapter(),),
             description="mods import destination.",
         ).metadata(),
     )
@@ -20,14 +20,14 @@ class SettingsSpec:
         name: str = dataclasses.field(
             default="Guilty Gear Strive",
             metadata=schemaspec.SchemaItemField(
-                possible_values=[schemaspec.StringSchema()],
+                possible_values=(schemaspec.StringAdapter(),),
                 description="name of the game",
             ).metadata(),
         )
         enabled: bool = dataclasses.field(
             default=True,
             metadata=schemaspec.SchemaItemField(
-                possible_values=[schemaspec.BoolSchema()],
+                possible_values=(schemaspec.BoolAdapter(),),
                 description="whether or not default_game should be used at all.",
             ).metadata(),
         )
@@ -48,7 +48,7 @@ class SettingsSpec:
                     "~/.steam/root/steamapps/common/GUILTY GEAR STRIVE/"
                 ),
                 metadata=schemaspec.SchemaItemField(
-                    possible_values=[schemaspec.PathSchema()],
+                    possible_values=(schemaspec.PathAdapter(),),
                     description="game install path.",
                 ).metadata(),
             )

@@ -34,7 +34,7 @@ def attach(subparsers) -> argparse.ArgumentParser:
 def hook(args):
     if args.keys:
         logger.info("[config] get by keys")
-        value = config.SCHEMA.format_export_keys(config.SETTINGS, *args.keys)
+        value = config.SCHEMA.format_export(config.SETTINGS, keys=args.keys)
         print(value)
     elif args.list_all or not args.keys:
         logger.info("[config] list all config options")
