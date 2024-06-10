@@ -4,11 +4,12 @@
 import argparse
 import logging
 import pathlib
+import sqlite3
 import subprocess
 import uuid
 
 from unverdad import config
-from unverdad.data import builders, database, tables, views
+from unverdad.data import builders, database, views
 
 
 def attach(subparsers) -> argparse.ArgumentParser:
@@ -64,6 +65,19 @@ def __copy_files(
     result.check_returncode()
 
 
+def __mod_files(con: sqlite3.Connection, mod_id: uuid.UUID) -> list[pathlib.Path] | str:
+    mod_files = []
+    for pak_row in con.execute(f"SELECT * FROM v_pak WHERE mod_id = ?", [mod_id]):
+        pak = views.PakView(**pak_row)
+        pak_path = (config.SETTINGS.mods_home / pak.pak_path).expanduser().resolve()
+        sig_path = (config.SETTINGS.mods_home / pak.sig_path).expanduser().resolve()
+        if not pak_path.is_file() or not sig_path.is_file():
+            return f"'{pak_path}' and/or '{sig_path}' are not valid files"
+        mod_files.append(pak_path)
+        mod_files.append(sig_path)
+    return mod_files
+
+
 def hook(args) -> None:
     logger = logging.getLogger(__name__)
     logger.info("install mods")
@@ -101,18 +115,10 @@ def hook(args) -> None:
             print(f"mkdir -p '{destination}'")
         else:
             destination.mkdir(parents=True, exist_ok=True)
-        mod_files = []
-        for pak_row in db.execute(
-            f"SELECT * FROM v_pak WHERE mod_id = ?", [mod.mod_id]
-        ):
-            pak = views.PakView(**pak_row)
-            pak_path = (config.SETTINGS.mods_home / pak.pak_path).expanduser().resolve()
-            sig_path = (config.SETTINGS.mods_home / pak.sig_path).expanduser().resolve()
-            if not pak_path.is_file() or not sig_path.is_file():
-                logger.error(f"'{pak_path}' and/or '{sig_path}' are not valid files")
-                mod_files = []
-                break
-            mod_files.append(pak_path)
-            mod_files.append(sig_path)
+        match __mod_files(con=db, mod_id=mod.mod_id):
+            case str(msg):
+                return logger.error(msg)
+            case list() as files:
+                mod_files = files
         logger.info(f"installing mod '{mod.mod_name}' ({len(mod_files)} files)...")
         __copy_files(files=mod_files, dir=destination, dry=args.dry)
