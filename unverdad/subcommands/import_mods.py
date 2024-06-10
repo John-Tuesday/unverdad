@@ -76,6 +76,12 @@ def attach(subparsers):
         help="name to be used instead automatically naming",
         nargs="?",
     )
+    parser.add_argument(
+        "--enabled",
+        help="determine if the imported mod is set as enabled",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+    )
     return parser
 
 
@@ -152,6 +158,7 @@ def hook(args):
         mod_id=schema.new_uuid(),
         game_id=game_id,
         name=mod_name,
+        enabled=args.enabled,
     )
     paks = [
         tables.pak.PakEntity(
