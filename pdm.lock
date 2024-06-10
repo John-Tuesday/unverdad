@@ -9,7 +9,7 @@ content_hash = "sha256:b1cd19039b525f59f6f106e3799922ad97f07b7e7dba5bf8472be7dc9
 
 [[package]]
 name = "schemaspec"
-version = "0.0.1"
+version = "0.0.2"
 requires_python = ">=3.12"
 editable = true
 path = "./schemaspec"
