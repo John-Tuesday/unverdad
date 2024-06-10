@@ -60,7 +60,6 @@ def attach(subparsers):
 
 
 def __on_show(
-    conf,
     con,
     cond: builders.ConditionBuilder,
 ):
@@ -126,7 +125,6 @@ def hook(args):
             enabled=enable,
         )
     __on_show(
-        conf=args.config,
         con=con,
         cond=conditions,
     )

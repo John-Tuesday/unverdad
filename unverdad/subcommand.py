@@ -12,11 +12,8 @@ class SubCommand(Protocol):
     def hook(self, args) -> None:
         """Perform action.
 
-        Called immediately after loading config.
+        Called after loading config and initializing logging.
 
-        Args:
-            args:
-                Namespace object resulting from the parsed args; plus,
-                args.config holds the resulting config.Config object.
+        :param args: Namespace object resulting from the parsed args.
         """
         ...

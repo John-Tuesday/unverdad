@@ -91,12 +91,9 @@ def parse_args(
         p = subcmd.attach(subparsers)
         p.set_defaults(hook=subcmd.hook)
     args = parser.parse_args()
-
     init_logging(
         level=args.logging_level,
         root_logger=root_logger,
         log_file=config.LOG_FILE,
     )
-
-    args.config = config.SETTINGS
     args.hook(args)
