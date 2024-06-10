@@ -29,11 +29,22 @@ def match_name(name: str, value: str) -> bool:
     return re.search(re.sub("[_ ]", "[_ ]", name), value, re.IGNORECASE) is not None
 
 
+def is_dir(path: str) -> bool:
+    """True if and only if `path` is a directory."""
+    return pathlib.Path(path).expanduser().resolve().is_dir()
+
+
 def init_functions(con: sqlite3.Connection):
     con.create_function(
         name="match_name",
         narg=2,
         func=match_name,
+        deterministic=True,
+    )
+    con.create_function(
+        name="is_dir",
+        narg=1,
+        func=is_dir,
         deterministic=True,
     )
 
