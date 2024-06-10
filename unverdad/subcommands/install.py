@@ -12,7 +12,11 @@ from unverdad.data import builders, database, tables, views
 
 
 def attach(subparsers) -> argparse.ArgumentParser:
-    parser = subparsers.add_parser("install", help="install all mods")
+    parser = subparsers.add_parser(
+        "install",
+        help="install all mods",
+        description="install all enabled mods to a game",
+    )
     game_opt = parser.add_argument_group(
         title="game",
         description="choose the game in which to install the mods",
@@ -40,12 +44,6 @@ def attach(subparsers) -> argparse.ArgumentParser:
         default=[],
         type=uuid.UUID,
     )
-    parser.add_argument(
-        "--allow-disabled",
-        help="do not automatically filter disabled mods",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-    )
     return parser
 
 
@@ -54,7 +52,7 @@ def __copy_files(
     dir: pathlib.Path,
     dry: bool = False,
 ):
-    cmd = ["cp", *files, dir]
+    cmd = ["cp", "-n", *files, dir]
     if dry:
         print(*[f"'{x}'" if isinstance(x, pathlib.Path) else f"{x}" for x in cmd])
         return
@@ -78,38 +76,29 @@ def hook(args) -> None:
             column_name="game_id",
             column_value=args.game_id,
         )
-    elif args.game_name:
+    elif args.game_name or config.SETTINGS.default_game.enabled:
         game_cond._add_param_expr(
             column_name="game_name",
             expression="match_name({column}, {param})",
-            param_value=args.game_name,
+            param_value=args.game_name or config.SETTINGS.default_game.name,
         )
-    elif config.SETTINGS.default_game.enabled:
-        game_cond._add_param_expr(
-            column_name="game_name",
-            expression="match_name({column}, {param})",
-            param_value=config.SETTINGS.default_game.name,
-        )
-    if not args.allow_disabled:
-        cond = conditions.add_subfilter(combine_operator=builders.LogicalOperator.AND)
-        cond._add_param(column_name="enabled", column_value=True)
+    else:
+        return logger.error("Specify a game or enable a default_game")
     mod_conds = conditions.add_subfilter(combine_operator=builders.LogicalOperator.OR)
+    mod_conds._add_param(column_name="enabled", column_value=True)
     for mod_id in args.mod_ids:
         mod_conds._add_param(column_name="mod_id", column_value=mod_id)
     db = database.get_db()
-    sql_statement = "SELECT * FROM v_mod"
-    if conditions:
-        sql_statement = f"{sql_statement}\nWHERE {conditions.render()}"
+    sql_statement = f"SELECT * FROM v_mod\nWHERE {conditions.render()}"
     logger.debug(f"{sql_statement=!s}")
     for mod_row in db.execute(sql_statement, conditions.params()):
         mod = views.ModView(**mod_row)
         destination = (mod.game_path / mod.game_path_offset).expanduser().resolve()
         if not destination.is_dir():
-            logger.error(f"Game path offset is not a valid directory")
-            return
-        destination = mod.install_path.resolve()
+            return logger.error(f"Game path offset is not a valid directory")
+        destination = mod.install_path.expanduser().resolve()
         if args.dry:
-            logger.info(f"DRY: mkdir -p '{destination}'")
+            print(f"mkdir -p '{destination}'")
         else:
             destination.mkdir(parents=True, exist_ok=True)
         mod_files = []
