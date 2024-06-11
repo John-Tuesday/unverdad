@@ -116,3 +116,7 @@ def parse_args(
         log_file=config.LOG_FILE,
     )
     return namespace.hook(namespace)
+
+
+def main() -> int:
+    return parse_args().code
