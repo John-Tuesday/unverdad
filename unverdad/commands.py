@@ -58,6 +58,7 @@ def init_logging(
 
 def parse_args(
     root_logger: Optional[logging.Logger] = None,
+    args: Optional[list[str]] = None,
 ) -> errors.Result[None]:
     """Parse args to configure and perform user chosen actions.
 
@@ -66,6 +67,8 @@ def parse_args(
     hook functions.
 
     :param `root_logger`: Logger which is configured.
+    :param `args`: Forwarded directly to `argparse.ArgumentParser.parse_args()`.
+        Default is `sys.argv`.
 
     :return: Return the `unverdad.errors.Result` from the corresponding subcommand.
     """
@@ -106,10 +109,10 @@ def parse_args(
     for subcmd in subcommands.as_list():
         p = subcmd.attach(subparsers)
         p.set_defaults(hook=subcmd.hook, subparser=p)
-    args = parser.parse_args()
+    namespace = parser.parse_args(args=args)
     init_logging(
-        level=args.logging_level,
+        level=namespace.logging_level,
         root_logger=root_logger,
         log_file=config.LOG_FILE,
     )
-    return args.hook(args)
+    return namespace.hook(namespace)
