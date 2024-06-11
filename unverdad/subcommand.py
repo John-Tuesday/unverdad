@@ -11,7 +11,7 @@ class SubCommand(Protocol):
         """Add parser to subparsers, configure, then return the result."""
         ...
 
-    def hook(self, args) -> errors.UnverdadError | None:
+    def hook(self, args) -> errors.Result[None]:
         """Perform action.
 
         Called after loading config and initializing logging.

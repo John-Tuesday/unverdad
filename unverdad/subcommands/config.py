@@ -39,7 +39,7 @@ def attach(subparsers) -> argparse.ArgumentParser:
     return parser
 
 
-def hook(args) -> errors.UnverdadError | None:
+def hook(args) -> errors.Result[None]:
     show_help = args.keys is None if args.show_help is None else args.show_help
     print(
         config.SCHEMA.format_export(
@@ -48,3 +48,4 @@ def hook(args) -> errors.UnverdadError | None:
             show_help=show_help,
         )
     )
+    return errors.GoodResult()

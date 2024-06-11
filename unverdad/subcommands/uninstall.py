@@ -56,7 +56,7 @@ def __remove_dir(dir: pathlib.Path, dry: bool = False):
     result.check_returncode()
 
 
-def hook(args) -> errors.UnverdadError | None:
+def hook(args) -> errors.Result[None]:
     sql_statement = """SELECT * FROM game WHERE """
     param = {}
     if args.game_id:
@@ -70,10 +70,11 @@ def hook(args) -> errors.UnverdadError | None:
     con = database.get_db()
     game_row = con.execute(sql_statement, param).fetchone()
     if game_row is None:
-        return errors.UnverdadError("no game found")
+        return errors.ErrorResult("no game found")
     game = tables.game.GameEntity(**game_row)
     if game.game_path is None:
-        return errors.UnverdadError("game path needs to be set")
+        return errors.ErrorResult("game path needs to be set")
     mods_home = game.game_path / game.game_path_offset / game.mods_home_relative_path
     mods_home = mods_home.expanduser().resolve()
     __remove_dir(mods_home, dry=args.dry)
+    return errors.GoodResult()

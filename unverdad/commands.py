@@ -44,7 +44,7 @@ def init_logging(
 
 def parse_args(
     root_logger: Optional[logging.Logger] = None,
-) -> errors.UnverdadError | None:
+) -> errors.Result[None]:
     """Parse args to configure and perform user chosen actions.
 
     Creates, configures, and runs an argparse.ArgumentParser.

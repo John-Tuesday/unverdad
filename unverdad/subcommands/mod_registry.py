@@ -90,7 +90,7 @@ def __on_set(
         )
 
 
-def hook(args) -> errors.UnverdadError | None:
+def hook(args) -> errors.Result[None]:
     """"""
     conditions = builders.ConditionBuilderBranch(
         combine_operator=builders.LogicalOperator.AND,
@@ -128,3 +128,4 @@ def hook(args) -> errors.UnverdadError | None:
         con=con,
         cond=conditions,
     )
+    return errors.GoodResult()
