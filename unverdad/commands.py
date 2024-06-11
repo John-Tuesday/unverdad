@@ -1,3 +1,11 @@
+"""Functions for preparing and executing commands.
+
+.. note::
+
+    `mkdir_homes()` is meant to be run before `parse_args()`. It is not explicitly
+    checked, but it is likely a subcommand will fail if it isn't run.
+"""
+
 import argparse
 import logging
 import pathlib
@@ -7,8 +15,14 @@ from typing import Optional
 from unverdad import config, errors, subcommands
 
 
-def mkdir_homes():
-    """Ensure directory homes exist."""
+def mkdir_homes() -> None:
+    """Create home directories if they do not exist.
+
+    Namely,
+        `unverdad.config.constants.DATA_HOME`,
+        `unverdad.config.constants.CONFIG_HOME`, and
+        `unverdad.config.constants.STATE_HOME`
+    """
     for dir in [config.DATA_HOME, config.CONFIG_HOME, config.STATE_HOME]:
         dir.expanduser().resolve().mkdir(parents=True, exist_ok=True)
 
@@ -47,9 +61,13 @@ def parse_args(
 ) -> errors.Result[None]:
     """Parse args to configure and perform user chosen actions.
 
-    Creates, configures, and runs an argparse.ArgumentParser.
+    Creates, configures, and runs an `argparse.ArgumentParser`.
     According to the parsed arguments, configure logging and run associated
     hook functions.
+
+    :param `root_logger`: Logger which is configured.
+
+    :return: Return the `unverdad.errors.Result` from the corresponding subcommand.
     """
     parser = argparse.ArgumentParser(
         prog=config.APP_NAME,
