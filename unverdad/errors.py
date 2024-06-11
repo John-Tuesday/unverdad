@@ -1,3 +1,4 @@
+import abc
 import enum
 from typing import ClassVar, Self, TypeGuard, override
 
@@ -15,13 +16,14 @@ class ResultType(enum.Enum):
     """A result indicating success."""
 
 
-class Result[T]:
+class Result[T](abc.ABC):
     """Abstract parent for Good and Bad results."""
 
     result_type: ClassVar[ResultType]
     """Type of this result."""
 
     @property
+    @abc.abstractmethod
     def code(self) -> int:
         """Return code if used in `sys.exit()`"""
         ...
