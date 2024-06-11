@@ -1,5 +1,5 @@
 from tests.data import fixture_database as fd
-from unverdad import commands
+from unverdad import run
 from unverdad.data import database
 
 
@@ -8,7 +8,7 @@ def manual_main():
     print("IN MEMORY DATABASE")
     fd.insert_samples(con)
     print("TEST SAMPLES IN USE")
-    commands.parse_args()
+    run.parse_args()
     fd.print_all(con)
 
 

@@ -1,11 +1,11 @@
 import sys
 
-from unverdad import commands
+from unverdad import run
 
 
 def main():
-    commands.mkdir_homes()
-    return commands.parse_args().code
+    run.mkdir_homes()
+    return run.parse_args().code
 
 
 if __name__ == "__main__":
