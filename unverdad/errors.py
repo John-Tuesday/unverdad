@@ -7,21 +7,33 @@ class UnverdadError(Exception):
 
 
 class ResultType(enum.Enum):
+    """Subclass indicator for `Result`."""
+
     ERROR = enum.auto()
+    """A result indicating an error."""
     GOOD = enum.auto()
+    """A result indicating success."""
 
 
 class Result[T]:
+    """Abstract parent for Good and Bad results."""
+
     result_type: ClassVar[ResultType]
+    """Type of this result."""
 
     @property
-    def code(self) -> int: ...
+    def code(self) -> int:
+        """Return code if used in `sys.exit()`"""
+        ...
 
     def __bool__(self) -> bool:
+        """Return `True` if and only if `self` is `ResultType.Good`"""
         return self.result_type is ResultType.GOOD
 
 
 class GoodResult[T](Result[T]):
+    """Semantically good `Result` with a wrapped `value`."""
+
     result_type: ClassVar[ResultType] = ResultType.GOOD
 
     def __init__(self, value: T = None):
@@ -34,10 +46,13 @@ class GoodResult[T](Result[T]):
 
     @property
     def value(self) -> T:
+        """The wrapped `value`."""
         return self._value
 
 
 class ErrorResult[T](Result[T]):
+    """Semantically error `Result` with a wrapped `message` and custom `code`."""
+
     result_type: ClassVar[ResultType] = ResultType.ERROR
 
     def __init__(self, message: str, code: int = -1):
@@ -51,14 +66,17 @@ class ErrorResult[T](Result[T]):
 
     @property
     def message(self) -> str:
+        """Details of the error."""
         return self._message
 
 
 def is_good[T](result: Result[T]) -> TypeGuard[GoodResult[T]]:
+    """Check if `Result.result_type` is `ResultType.GOOD`."""
     return result.result_type is ResultType.GOOD
 
 
 def is_error[T](result: Result[T]) -> TypeGuard[ErrorResult[T]]:
+    """Check if `Result.result_type` is `ResultType.ERROR`."""
     return result.result_type is ResultType.ERROR
 
 
